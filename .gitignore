@@ -40,3 +40,6 @@ app.*.symbols
 # Obfuscation related
 app.*.map.json
 functions/api_keys.js
+android/app/google-services.json
+ios/GoogleService-Info.plist
+ios/GoogleService-Info.plist
