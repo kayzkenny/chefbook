@@ -1,69 +1,73 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:chefbook/shared/theme_data.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:chefbook/pages/landing_page.dart';
+import 'package:firebase_analytics/observer.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+// import 'package:chefbook/pages/search/search_page.dart';
+// import 'package:chefbook/pages/recipes/recipe_form.dart';
+import 'package:chefbook/pages/account/profile_page.dart';
+import 'package:chefbook/pages/account/network_page.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
+// import 'package:chefbook/pages/recipes/public_user_page.dart';
+// import 'package:chefbook/pages/recipes/my_recipes_page.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+// import 'package:chefbook/pages/feed/user_recipe_detail_page.dart';
+// import 'package:chefbook/pages/recipes/my_recipe_detail_page.dart';
+
+FirebaseAnalytics analytics;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  runApp(MyApp());
+  FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterError;
+
+  runApp(
+    ProviderScope(
+      child: MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
-  // This widget is the root of your application.
+  MyApp({Key key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
+    // Restric device orientation to portrait mode
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+    ]);
+
     return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-      ),
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
-    );
-  }
-}
+      debugShowCheckedModeBanner: false,
+      title: 'Chef Book',
 
-class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
-  final String title;
+      // Named Routes
+      routes: {
+        // RecipeForm.routeName: (context) => RecipeForm(),
+        // SearchPage.routeName: (context) => SearchPage(),
+        ProfilePage.routeName: (context) => ProfilePage(),
+        NetworkPage.routeName: (context) => NetworkPage(),
+        // MyRecipesPage.routeName: (context) => MyRecipesPage(),
+        // PublicUserPage.routeName: (context) => PublicUserPage(),
+        // MyRecipeDetailPage.routeName: (context) => MyRecipeDetailPage(),
+        // UserRecipeDetailPage.routeName: (context) => UserRecipeDetailPage(),
+      },
 
-  @override
-  _MyHomePageState createState() => _MyHomePageState();
-}
+      home: LandingPage(),
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headline4,
-            ),
-          ],
+      // Firebase Analytics
+      navigatorObservers: [
+        FirebaseAnalyticsObserver(
+          analytics: FirebaseAnalytics(),
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+      ],
+
+      // App Theme
+      theme: lightThemeData,
+      darkTheme: darkThemeData,
     );
   }
 }
