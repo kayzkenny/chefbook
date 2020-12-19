@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:chefbook/services/auth.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:chefbook/pages/account/network_page.dart';
 import 'package:chefbook/pages/account/profile_page.dart';
 import 'package:chefbook/services/firestore_database.dart';
@@ -32,42 +33,43 @@ class AccountPage extends HookWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              if (userData != null)
-                ListTile(
-                  onTap: () => Navigator.pushNamed(
-                    context,
-                    ProfilePage.routeName,
-                    // arguments: userData,
-                  ),
-                  leading: Icon(Icons.account_circle),
-                  title: Text(
-                    'My Profile',
-                    style: Theme.of(context).textTheme.subtitle1,
-                  ),
-                  trailing: Icon(Icons.arrow_right),
+              // if (userData != null)
+              ListTile(
+                onTap: () => Navigator.pushNamed(
+                  context,
+                  ProfilePage.routeName,
+                  // arguments: userData,
                 ),
-              Divider(),
-              if (userData != null)
-                ListTile(
-                  onTap: () => Navigator.pushNamed(
-                    context,
-                    NetworkPage.routeName,
-                    arguments: userData,
-                  ),
-                  leading: Icon(Icons.people),
-                  title: Text(
-                    'My Network',
-                    style: Theme.of(context).textTheme.subtitle1,
-                  ),
-                  trailing: Icon(Icons.arrow_right),
+                leading: Icon(Icons.account_circle),
+                title: Text(
+                  'My Profile',
+                  style: Theme.of(context).textTheme.subtitle1,
                 ),
-              Padding(
-                padding: const EdgeInsets.all(32.0),
-                child: Text(
-                  'Others',
-                  style: Theme.of(context).textTheme.headline6,
-                ),
+                trailing: Icon(Icons.arrow_right),
               ),
+              Divider(),
+              // if (userData != null)
+              ListTile(
+                onTap: () => Navigator.pushNamed(
+                  context,
+                  NetworkPage.routeName,
+                  arguments: userData,
+                ),
+                leading: Icon(Icons.people),
+                title: Text(
+                  'My Network',
+                  style: Theme.of(context).textTheme.subtitle1,
+                ),
+                trailing: Icon(Icons.arrow_right),
+              ),
+              Divider(),
+              // Padding(
+              //   padding: const EdgeInsets.all(32.0),
+              //   child: Text(
+              //     'Others',
+              //     style: Theme.of(context).textTheme.headline6,
+              //   ),
+              // ),
               ListTile(
                 leading: Icon(Icons.stars),
                 title: Text(

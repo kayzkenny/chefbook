@@ -27,12 +27,13 @@ class ProfilePage extends ConsumerWidget {
 class ProfileForm extends HookWidget {
   ProfileForm({this.userData, Key key}) : super(key: key);
 
+  final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
   final UserData userData;
   final _formKey = GlobalKey<FormState>();
-  // final snackBar = SnackBar(
-  //   content: Text('Profile Updated'),
-  //   backgroundColor: Colors.brown[700],
-  // );
+  final snackBar = SnackBar(
+    content: Text('Profile Updated'),
+    backgroundColor: Colors.brown[700],
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -55,6 +56,7 @@ class ProfileForm extends HookWidget {
         await context.read(databaseProvider).updateUserData(userData: userData);
 
     return Scaffold(
+      key: _scaffoldKey,
       appBar: AppBar(
         title: Text(
           'Profile',
@@ -167,7 +169,7 @@ class ProfileForm extends HookWidget {
                               loading.value = true;
                               await updateUserData(_formUserData);
                               loading.value = false;
-                              // Scaffold.of(context).showSnackBar(snackBar);
+                              _scaffoldKey.currentState.showSnackBar(snackBar);
                             }
                           },
                         ),

@@ -16,6 +16,10 @@ final userDataProvider = StreamProvider.autoDispose<UserData>(
   (ref) => ref.read(databaseProvider).userDataStream,
 );
 
+final cookbooksProvider = StreamProvider.autoDispose<List<Cookbook>>(
+  (ref) => ref.read(databaseProvider).cookbookStream,
+);
+
 final publicUserDataProvider =
     StreamProvider.autoDispose.family<UserData, String>(
   (ref, uid) => ref.read(databaseProvider).getUserStreamById(uid: uid),
@@ -180,6 +184,15 @@ class FirestoreDatabase implements Database {
     _service.deleteField(
       path: FirestorePath.recipe(recipeId),
       fieldName: 'imageURL',
+    );
+  }
+
+  @override
+  Stream<List<Cookbook>> get cookbookStream {
+    return _service.collectionStream(
+      path: FirestorePath.cookbooks(),
+      queryBuilder: (query) => query.where('createdBy', isEqualTo: uid),
+      builder: (data, documentId) => Cookbook.fromMap(data, documentId),
     );
   }
 

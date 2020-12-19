@@ -57,6 +57,8 @@ abstract class Database {
   /// Delete recipe [imageURL]
   Future<void> deleteRecipeImage({@required String recipeId});
 
+  Stream<List<Cookbook>> get cookbookStream;
+
   /// Get initial recipes with [cookbookId]
   Future<List<Recipe>> getFirstRecipesByCookbookId({
     @required String cookbookId,
