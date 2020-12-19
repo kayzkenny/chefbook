@@ -1,9 +1,10 @@
-import 'package:chefbook/models/cookbook.dart';
-import 'package:chefbook/pages/cookbook/cookbook_card.dart';
-import 'package:chefbook/services/firestore_database.dart';
 import 'package:flutter/material.dart';
+import 'package:chefbook/models/cookbook.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:chefbook/services/firestore_database.dart';
+import 'package:chefbook/pages/cookbook/cookbook_card.dart';
+import 'package:chefbook/pages/cookbook/new_cookbook_dialog.dart';
 
 class CookbookPage extends ConsumerWidget {
   const CookbookPage({Key key}) : super(key: key);
@@ -13,14 +14,14 @@ class CookbookPage extends ConsumerWidget {
     final cookbooksStream = watch(cookbooksProvider);
 
     return cookbooksStream.when(
-      data: (cookbooks) => CookbookList(),
+      data: (cookbooks) => CookbookList(cookbooks: cookbooks),
       loading: () => Center(child: const CircularProgressIndicator()),
       error: (error, stack) => const Text('Oops'),
     );
   }
 }
 
-class CookbookList extends StatelessWidget {
+class CookbookList extends HookWidget {
   const CookbookList({Key key, this.cookbooks}) : super(key: key);
 
   final List<Cookbook> cookbooks;
@@ -35,13 +36,13 @@ class CookbookList extends StatelessWidget {
         ),
       ),
       body: SafeArea(
-        child: cookbooks?.length == 0 || cookbooks == null
+        child: cookbooks.length == 0
             ? Center(
                 child: Text('No Cookbooks to Show'),
               )
             : ListView.builder(
                 padding: EdgeInsets.all(20.0),
-                itemCount: cookbooks?.length,
+                itemCount: cookbooks.length,
                 itemBuilder: (BuildContext context, int index) {
                   return CookbookCard(
                     cookbook: cookbooks[index],
@@ -50,7 +51,13 @@ class CookbookList extends StatelessWidget {
               ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+        onPressed: () async {
+          await showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) => NewCookbookDialog(),
+          );
+        },
         child: Icon(Icons.add),
         backgroundColor:
             Theme.of(context).floatingActionButtonTheme.backgroundColor,

@@ -59,7 +59,7 @@ class Cookbook {
       coverURL: coverURL ?? null,
       createdAt: createdAt.toDate(),
       lastUpdated: lastUpdated.toDate(),
-      recipeCount: recipeCount ?? null,
+      recipeCount: recipeCount ?? 0,
     );
   }
 }

@@ -25,7 +25,7 @@ class CookbookCard extends StatelessWidget {
             ClipRRect(
               borderRadius: BorderRadius.all(Radius.circular(10.0)),
               child: Image.asset(
-                'images/logo-jpg.jpg',
+                'images/logo.jpg',
                 height: 200.0,
                 fit: BoxFit.fitWidth,
               ),
