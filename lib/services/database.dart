@@ -33,21 +33,6 @@ abstract class Database {
   /// Delete recipe wth [recipeId]
   Future<void> deleteRecipe({@required String recipeId});
 
-  /// Add recipe to favourites array with [recipeId]
-  Future<void> addToFavourites({@required String recipeId});
-
-  /// Remove recipe form favourites array with [recipeId]
-  Future<void> removeFromFavourites({@required String recipeId});
-
-  /// Get recipes favourites with [recipeIds]
-  Future<List<Recipe>> getFavourites({@required List<String> recipeIds});
-
-  /// Get following with [uids]
-  Future<List<UserData>> getFollowing({@required List<String> uids});
-
-  /// Get followers with [uids]
-  Future<List<UserData>> getFollowers({@required List<String> uids});
-
   /// Update recipe [imageURL]
   Future<void> updateRecipeImage({
     @required String imageURL,
@@ -99,10 +84,4 @@ abstract class Database {
     @required String coverURL,
     @required String cookbookID,
   });
-
-  /// Get initial cookbooks
-  Future<List<Cookbook>> get getFirstCookbooks;
-
-  /// Get more cookbooks
-  Future<List<Cookbook>> get getMoreCookbooks;
 }

@@ -5,11 +5,12 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:chefbook/pages/landing_page.dart';
 import 'package:firebase_analytics/observer.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-// import 'package:chefbook/pages/search/search_page.dart';
-// import 'package:chefbook/pages/recipes/recipe_form.dart';
+import 'package:chefbook/pages/recipes/recipe_form.dart';
+import 'package:chefbook/pages/recipes/recipes_page.dart';
 import 'package:chefbook/pages/account/profile_page.dart';
 import 'package:chefbook/pages/account/network_page.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:chefbook/pages/recipes/recipe_detail_page.dart';
 // import 'package:chefbook/pages/recipes/public_user_page.dart';
 // import 'package:chefbook/pages/recipes/my_recipes_page.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
@@ -46,13 +47,13 @@ class MyApp extends StatelessWidget {
 
       // Named Routes
       routes: {
-        // RecipeForm.routeName: (context) => RecipeForm(),
+        RecipeForm.routeName: (context) => RecipeForm(),
         // SearchPage.routeName: (context) => SearchPage(),
         ProfilePage.routeName: (context) => ProfilePage(),
         NetworkPage.routeName: (context) => NetworkPage(),
-        // MyRecipesPage.routeName: (context) => MyRecipesPage(),
+        RecipesPage.routeName: (context) => RecipesPage(),
         // PublicUserPage.routeName: (context) => PublicUserPage(),
-        // MyRecipeDetailPage.routeName: (context) => MyRecipeDetailPage(),
+        RecipeDetailPage.routeName: (context) => RecipeDetailPage(),
         // UserRecipeDetailPage.routeName: (context) => UserRecipeDetailPage(),
       },
 

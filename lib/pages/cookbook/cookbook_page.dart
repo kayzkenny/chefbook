@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:chefbook/models/cookbook.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:chefbook/pages/recipes/recipes_page.dart';
 import 'package:chefbook/services/firestore_database.dart';
 import 'package:chefbook/pages/cookbook/cookbook_card.dart';
 import 'package:chefbook/pages/cookbook/new_cookbook_dialog.dart';
@@ -44,8 +45,18 @@ class CookbookList extends HookWidget {
                 padding: EdgeInsets.all(20.0),
                 itemCount: cookbooks.length,
                 itemBuilder: (BuildContext context, int index) {
-                  return CookbookCard(
-                    cookbook: cookbooks[index],
+                  final cookbook = cookbooks[index];
+                  return GestureDetector(
+                    onTap: () async {
+                      await Navigator.pushNamed(
+                        context,
+                        RecipesPage.routeName,
+                        arguments: cookbook,
+                      );
+                    },
+                    child: CookbookCard(
+                      cookbook: cookbooks[index],
+                    ),
                   );
                 },
               ),

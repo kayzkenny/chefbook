@@ -31,19 +31,6 @@ final userRecipeProvider = StreamProvider.autoDispose.family<Recipe, String>(
   ).recipeStream(recipeId: recipeId),
 );
 
-final favouritesProvider = FutureProvider.family<List<Recipe>, List<String>>(
-  (ref, recipeIds) =>
-      ref.read(databaseProvider).getFavourites(recipeIds: recipeIds),
-);
-
-final followingProvider = FutureProvider.family<List<UserData>, List<String>>(
-  (ref, uids) => ref.read(databaseProvider).getFollowing(uids: uids),
-);
-
-final followersProvider = FutureProvider.family<List<UserData>, List<String>>(
-  (ref, uids) => ref.read(databaseProvider).getFollowers(uids: uids),
-);
-
 class FirestoreDatabase implements Database {
   FirestoreDatabase({@required this.uid}) : assert(uid != null);
 
@@ -120,51 +107,6 @@ class FirestoreDatabase implements Database {
   Future<void> deleteRecipe({@required String recipeId}) async {
     _service.deleteData(
       path: FirestorePath.recipe(recipeId),
-    );
-  }
-
-  @override
-  Future<void> addToFavourites({@required String recipeId}) async {
-    await _service.arrayToArray(
-      path: FirestorePath.userData(uid),
-      data: recipeId,
-      fieldName: "favourites",
-    );
-  }
-
-  @override
-  Future<void> removeFromFavourites({@required String recipeId}) async {
-    await _service.removeFromArray(
-      path: FirestorePath.userData(uid),
-      data: recipeId,
-      fieldName: "favourites",
-    );
-  }
-
-  @override
-  Future<List<Recipe>> getFavourites({@required List<String> recipeIds}) async {
-    return await _service.filteredCollectionList(
-      path: FirestorePath.recipes(),
-      builder: (data, documentId) => Recipe.fromMap(data, documentId),
-      ids: recipeIds,
-    );
-  }
-
-  @override
-  Future<List<UserData>> getFollowing({@required List<String> uids}) async {
-    return await _service.filteredCollectionList(
-      path: FirestorePath.users(),
-      builder: (data, documentId) => UserData.fromMap(data, documentId),
-      ids: uids,
-    );
-  }
-
-  @override
-  Future<List<UserData>> getFollowers({@required List<String> uids}) async {
-    return await _service.filteredCollectionList(
-      path: FirestorePath.users(),
-      builder: (data, documentId) => UserData.fromMap(data, documentId),
-      ids: uids,
     );
   }
 
@@ -290,30 +232,6 @@ class FirestoreDatabase implements Database {
   Future<void> deleteCookbook({@required String cookbookId}) async {
     _service.deleteData(
       path: FirestorePath.userCookbooks(cookbookId),
-    );
-  }
-
-  @override
-  Future<List<Cookbook>> get getFirstCookbooks async {
-    return await _service.collectionList(
-      path: FirestorePath.cookbooks(),
-      builder: (data, documentId) => Cookbook.fromMap(data, documentId),
-      queryBuilder: (query) => query
-          .orderBy('lastUpdated', descending: true)
-          .where('createdBy', isEqualTo: uid)
-          .limit(PageLimit),
-    );
-  }
-
-  @override
-  Future<List<Cookbook>> get getMoreCookbooks async {
-    return await _service.paginatedCollectionList(
-      path: FirestorePath.cookbooks(),
-      builder: (data, documentId) => Cookbook.fromMap(data, documentId),
-      queryBuilder: (query) => query
-          .orderBy('lastUpdated', descending: true)
-          .where('createdBy', isEqualTo: uid)
-          .limit(PageLimit),
     );
   }
 
