@@ -16,7 +16,8 @@ class EditCookbookDialog extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cookbookNameController = useTextEditingController();
+    final cookbookNameController =
+        useTextEditingController(text: cookbook.name);
 
     Future<void> updateCookbook(Cookbook updatedCookbook) async => await context
         .read(databaseProvider)
