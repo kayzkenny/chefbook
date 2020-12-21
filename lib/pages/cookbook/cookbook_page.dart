@@ -38,7 +38,7 @@ class CookbookPage extends HookWidget {
           ),
         ),
         body: SafeArea(
-          child: cookbookList.length == 0
+          child: cookbookList.isEmpty
               ? Center(
                   child: Text('No Cookbooks to Show'),
                 )

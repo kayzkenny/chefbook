@@ -35,7 +35,7 @@ class FeedPage extends HookWidget {
           ),
         ),
         body: SafeArea(
-          child: publicRecipeList.length == 0
+          child: publicRecipeList.isEmpty
               ? Center(
                   child: Text('No Recipes to Show'),
                 )

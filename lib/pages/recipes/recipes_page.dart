@@ -61,7 +61,7 @@ class RecipesPage extends HookWidget {
           ),
         ),
         body: SafeArea(
-          child: recipeList.length == 0
+          child: recipeList.isEmpty
               ? Center(
                   child: Text('No Recipes to Show'),
                 )

@@ -7,14 +7,14 @@ import 'package:chefbook/services/firestore_database.dart';
 import 'package:chefbook/pages/account/avatar_picker.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 
-class ProfilePage extends ConsumerWidget {
+class ProfilePage extends HookWidget {
   ProfilePage({Key key}) : super(key: key);
 
   static const routeName = '/profile';
 
   @override
-  Widget build(BuildContext context, ScopedReader watch) {
-    final userDataStream = watch(userDataProvider);
+  Widget build(BuildContext context) {
+    final userDataStream = useProvider(userDataProvider);
 
     return userDataStream.when(
       data: (userData) => ProfileForm(userData: userData),
