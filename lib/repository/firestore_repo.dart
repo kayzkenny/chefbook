@@ -19,6 +19,11 @@ final recipesProvider = StreamProvider.family<List<Recipe>, String>(
       .listenToRecipesRealTime(cookbookId: cookbookId),
 );
 
+final publicRecipesProvider = StreamProvider<List<Recipe>>(
+  (ref) =>
+      ref.read(firestoreRepositoryProvider).listenToPublicRecipesRealTime(),
+);
+
 final cookbooksProvider = StreamProvider<List<Cookbook>>(
   (ref) => ref.read(firestoreRepositoryProvider).listenToCookbooksRealTime(),
 );
@@ -31,27 +36,35 @@ class FirestoreRepository {
       FirebaseFirestore.instance.collection('recipes');
   final _cookbookCollectionReference =
       FirebaseFirestore.instance.collection('cookbooks');
-  final _recipeController = StreamController<List<Recipe>>.broadcast();
-  final _cookbookController = StreamController<List<Cookbook>>.broadcast();
+  final _recipesController = StreamController<List<Recipe>>.broadcast();
+  final _publicRecipesController = StreamController<List<Recipe>>.broadcast();
+  final _cookbooksController = StreamController<List<Cookbook>>.broadcast();
+  final _allPagedRecipes = List<List<Recipe>>();
+  final _allPublicPagedRecipes = List<List<Recipe>>();
+  final _allPagedCookbooks = List<List<Cookbook>>();
 
-  List<List<Recipe>> _allPagedRecipes = List<List<Recipe>>();
-  List<List<Cookbook>> _allPagedCookbooks = List<List<Cookbook>>();
+  static const int pageLimit = 10;
 
-  static const int recipePageLimit = 10;
-  static const int cookbookPageLimit = 10;
   DocumentSnapshot _lastRecipe;
+  DocumentSnapshot _lastPublicRecipe;
   DocumentSnapshot _lastCookbook;
   bool _hasMoreRecipes = true;
+  bool _hasMorePublicRecipes = true;
   bool _hasMoreCookbooks = true;
 
   Stream<List<Recipe>> listenToRecipesRealTime({@required String cookbookId}) {
     _requestRecipes(cookbookId: cookbookId);
-    return _recipeController.stream;
+    return _recipesController.stream;
+  }
+
+  Stream<List<Recipe>> listenToPublicRecipesRealTime() {
+    _requestPublicRecipes();
+    return _publicRecipesController.stream;
   }
 
   Stream<List<Cookbook>> listenToCookbooksRealTime() {
     _requestCookbooks();
-    return _cookbookController.stream;
+    return _cookbooksController.stream;
   }
 
   void _requestRecipes({@required String cookbookId}) {
@@ -59,7 +72,7 @@ class FirestoreRepository {
         .orderBy('createdAt', descending: true)
         .where('createdBy', isEqualTo: uid)
         .where('cookbookId', isEqualTo: cookbookId)
-        .limit(recipePageLimit);
+        .limit(pageLimit);
 
     if (_lastRecipe != null) {
       pageRecipeQuery = pageRecipeQuery.startAfterDocument(_lastRecipe);
@@ -87,13 +100,58 @@ class FirestoreRepository {
           var allRecipes = _allPagedRecipes.fold<List<Recipe>>(List<Recipe>(),
               (previousValue, pageItems) => previousValue..addAll(pageItems));
 
-          _recipeController.add(allRecipes);
+          _recipesController.add(allRecipes);
 
           if (currentRequestIndex == _allPagedRecipes.length - 1) {
             _lastRecipe = snapshot.docs.last;
           }
 
-          _hasMoreRecipes = generalRecipes.length == recipePageLimit;
+          _hasMoreRecipes = generalRecipes.length == pageLimit;
+        }
+      },
+    );
+  }
+
+  void _requestPublicRecipes() {
+    Query pagePublicRecipeQuery = _recipeCollectionReference
+        .orderBy('createdAt', descending: true)
+        .limit(pageLimit);
+
+    if (_lastPublicRecipe != null) {
+      pagePublicRecipeQuery =
+          pagePublicRecipeQuery.startAfterDocument(_lastPublicRecipe);
+    }
+
+    if (!_hasMorePublicRecipes) return;
+
+    int currentRequestIndex = _allPublicPagedRecipes.length;
+
+    pagePublicRecipeQuery.snapshots().listen(
+      (snapshot) {
+        if (snapshot.docs.isNotEmpty) {
+          List<Recipe> generalPublicRecipes = snapshot.docs
+              .map((snapshot) => Recipe.fromMap(snapshot.data(), snapshot.id))
+              .toList();
+
+          bool pageExists = currentRequestIndex < _allPublicPagedRecipes.length;
+
+          if (pageExists) {
+            _allPublicPagedRecipes[currentRequestIndex] = generalPublicRecipes;
+          } else {
+            _allPublicPagedRecipes.add(generalPublicRecipes);
+          }
+
+          var allPublicRecipes = _allPublicPagedRecipes.fold<List<Recipe>>(
+              List<Recipe>(),
+              (previousValue, pageItems) => previousValue..addAll(pageItems));
+
+          _publicRecipesController.add(allPublicRecipes);
+
+          if (currentRequestIndex == _allPublicPagedRecipes.length - 1) {
+            _lastPublicRecipe = snapshot.docs.last;
+          }
+
+          _hasMorePublicRecipes = generalPublicRecipes.length == pageLimit;
         }
       },
     );
@@ -103,7 +161,7 @@ class FirestoreRepository {
     Query pageCookbookQuery = _cookbookCollectionReference
         .orderBy('createdAt', descending: true)
         .where('createdBy', isEqualTo: uid)
-        .limit(cookbookPageLimit);
+        .limit(pageLimit);
 
     if (_lastCookbook != null) {
       pageCookbookQuery = pageCookbookQuery.startAfterDocument(_lastCookbook);
@@ -132,13 +190,13 @@ class FirestoreRepository {
               List<Cookbook>(),
               (previousValue, pageItems) => previousValue..addAll(pageItems));
 
-          _cookbookController.add(allCookbooks);
+          _cookbooksController.add(allCookbooks);
 
           if (currentRequestIndex == _allPagedCookbooks.length - 1) {
             _lastCookbook = snapshot.docs.last;
           }
 
-          _hasMoreCookbooks = generalCookbooks.length == cookbookPageLimit;
+          _hasMoreCookbooks = generalCookbooks.length == pageLimit;
         }
       },
     );
@@ -146,6 +204,8 @@ class FirestoreRepository {
 
   void requestMoreRecipes({@required String cookbookId}) =>
       _requestRecipes(cookbookId: cookbookId);
+
+  void requestMorePublicRecipes() => _requestPublicRecipes();
 
   void requestMoreCookbooks() => _requestCookbooks();
 }

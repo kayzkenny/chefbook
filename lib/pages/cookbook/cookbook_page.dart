@@ -43,8 +43,10 @@ class CookbookPage extends HookWidget {
                   child: Text('No Cookbooks to Show'),
                 )
               : ListView.builder(
+                  controller: scrollController,
                   padding: EdgeInsets.all(20.0),
                   itemCount: cookbookList.length,
+                  physics: const AlwaysScrollableScrollPhysics(),
                   itemBuilder: (BuildContext context, int index) {
                     final cookbook = cookbookList[index];
                     return GestureDetector(
