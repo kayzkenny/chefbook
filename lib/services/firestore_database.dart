@@ -16,10 +16,6 @@ final userDataProvider = StreamProvider.autoDispose<UserData>(
   (ref) => ref.read(databaseProvider).userDataStream,
 );
 
-final cookbooksProvider = StreamProvider.autoDispose<List<Cookbook>>(
-  (ref) => ref.read(databaseProvider).cookbookStream,
-);
-
 final publicUserDataProvider =
     StreamProvider.autoDispose.family<UserData, String>(
   (ref, uid) => ref.read(databaseProvider).getUserStreamById(uid: uid),

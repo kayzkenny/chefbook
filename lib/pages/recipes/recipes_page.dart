@@ -51,6 +51,7 @@ class RecipesPage extends HookWidget {
       });
       return () => scrollController.removeListener(() {});
     }, [scrollController]);
+
     return recipesStream.when(
       data: (recipeList) => Scaffold(
         appBar: AppBar(
@@ -60,25 +61,29 @@ class RecipesPage extends HookWidget {
           ),
         ),
         body: SafeArea(
-          child: ListView.builder(
-            itemCount: recipeList.length,
-            controller: scrollController,
-            padding: EdgeInsets.all(20.0),
-            physics: const AlwaysScrollableScrollPhysics(),
-            itemBuilder: (context, index) {
-              final recipe = recipeList[index];
-              return GestureDetector(
-                onTap: () async {
-                  Navigator.pushNamed(
-                    context,
-                    RecipeDetailPage.routeName,
-                    arguments: recipe.id,
-                  );
-                },
-                child: RecipeCard(recipe: recipe),
-              );
-            },
-          ),
+          child: recipeList.length == 0
+              ? Center(
+                  child: Text('No Recipes to Show'),
+                )
+              : ListView.builder(
+                  itemCount: recipeList.length,
+                  controller: scrollController,
+                  padding: EdgeInsets.all(20.0),
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  itemBuilder: (context, index) {
+                    final recipe = recipeList[index];
+                    return GestureDetector(
+                      onTap: () async {
+                        Navigator.pushNamed(
+                          context,
+                          RecipeDetailPage.routeName,
+                          arguments: recipe.id,
+                        );
+                      },
+                      child: RecipeCard(recipe: recipe),
+                    );
+                  },
+                ),
         ),
         floatingActionButton: FloatingActionButton(
           onPressed: showRecipeForm,
