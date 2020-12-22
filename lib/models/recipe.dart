@@ -4,9 +4,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class Recipe {
   final int serves;
   final int duration;
-  final int likesCount;
   final int reviewCount;
-  final int dislikesCount;
+  final int favouritesCount;
   final int caloriesPerServing;
   final double avgRating;
   final String id;
@@ -36,9 +35,8 @@ class Recipe {
     this.cookbookId,
     this.ingredients,
     this.description,
-    this.likesCount,
     this.reviewCount,
-    this.dislikesCount,
+    this.favouritesCount,
     this.caloriesPerServing,
   });
 
@@ -52,10 +50,9 @@ class Recipe {
       'duration': duration ?? 0,
       'tags': tags ?? <String>[],
       'steps': steps ?? <String>[],
-      'likesCount': likesCount ?? 0,
       'reviewCount': reviewCount ?? 0,
       'description': description ?? "",
-      'dislikesCount': dislikesCount ?? 0,
+      'favouritesCount': favouritesCount ?? 0,
       'ingredients': ingredients ?? <String>[],
       'createdAt': Timestamp.fromDate(createdAt),
       'caloriesPerServing': caloriesPerServing ?? 0,
@@ -71,10 +68,9 @@ class Recipe {
       'duration': duration ?? 0,
       'tags': tags ?? <String>[],
       'steps': steps ?? <String>[],
-      'likesCount': likesCount ?? 0,
       'reviewCount': reviewCount ?? 0,
       'description': description ?? "",
-      'dislikesCount': dislikesCount ?? 0,
+      'favouritesCount': favouritesCount ?? 0,
       'ingredients': ingredients ?? <String>[],
       'caloriesPerServing': caloriesPerServing ?? 0,
       'lastUpdated': Timestamp.fromDate(lastUpdated),
@@ -93,9 +89,8 @@ class Recipe {
 
     final int serves = data['serves'] ?? 0;
     final int duration = data['duration'] ?? 0;
-    final int likesCount = data['likesCount'] ?? 0;
     final int reviewCount = data['reviewCount'] ?? 0;
-    final int dislikesCount = data['dislikesCount'] ?? 0;
+    final int favouritesCount = data['favouritesCount'] ?? 0;
     final int caloriesPerServing = data['caloriesPerServing'] ?? 0;
     final double avgRating = (data['avgRating'] ?? 0).toDouble();
     final String imageURL = data['imageURL'] ?? null;
@@ -118,10 +113,9 @@ class Recipe {
       createdBy: createdBy,
       cookbookId: cookbookId,
       description: description,
-      caloriesPerServing: caloriesPerServing,
-      likesCount: likesCount,
       reviewCount: reviewCount,
-      dislikesCount: dislikesCount,
+      favouritesCount: favouritesCount,
+      caloriesPerServing: caloriesPerServing,
       tags: tags.map((e) => e.toString()).toList(),
       steps: steps.map((e) => e.toString()).toList(),
       createdAt: createdAt?.toDate() ?? DateTime.now(),
@@ -138,9 +132,8 @@ class Recipe {
 
     final int serves = data['serves'] ?? 0;
     final int duration = data['duration'] ?? 0;
-    final int likesCount = data['likesCount'] ?? 0;
     final int reviewCount = data['reviewCount'] ?? 0;
-    final int dislikesCount = data['dislikesCount'] ?? 0;
+    final int favouritesCount = data['favouritesCount'] ?? 0;
     final int caloriesPerServing = data['caloriesPerServing'] ?? 0;
     final double avgRating = (data['avgRating'] ?? 0).toDouble();
     final String name = data['name'];
@@ -164,9 +157,8 @@ class Recipe {
       createdBy: createdBy,
       cookbookId: cookbookId,
       description: description,
-      likesCount: likesCount,
       reviewCount: reviewCount,
-      dislikesCount: dislikesCount,
+      favouritesCount: favouritesCount,
       caloriesPerServing: caloriesPerServing,
       tags: tags.map((e) => e.toString()).toList(),
       steps: steps.map((e) => e.toString()).toList(),

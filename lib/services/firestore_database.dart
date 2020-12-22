@@ -1,4 +1,5 @@
 import 'package:meta/meta.dart';
+import 'package:rxdart/rxdart.dart';
 import 'package:chefbook/models/user.dart';
 import 'package:chefbook/services/auth.dart';
 import 'package:chefbook/models/recipe.dart';
@@ -6,6 +7,7 @@ import 'package:chefbook/models/cookbook.dart';
 import 'package:chefbook/services/database.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:chefbook/services/firestore_path.dart';
+import 'package:chefbook/models/recipeUserFavourite.dart';
 import 'package:chefbook/services/firestore_service.dart';
 
 final databaseProvider = Provider<Database>(
@@ -25,6 +27,28 @@ final userRecipeProvider = StreamProvider.autoDispose.family<Recipe, String>(
   (ref, recipeId) => FirestoreDatabase(
     uid: ref.watch(authProvider).currentUser().uid,
   ).recipeStream(recipeId: recipeId),
+);
+
+final favouriteRecipeProvider = StreamProvider.autoDispose
+    .family<RecipeUserFavourite, String>((ref, recipeId) {
+  final recipe = ref.watch(userRecipeProvider(recipeId).stream);
+  final favouritesList = ref.watch(favouriteRecipesProvider.stream);
+
+  return Rx.combineLatest2(
+    recipe,
+    favouritesList,
+    (Recipe recipe, List<RecipeUserFavourite> favouritesList) {
+      final userFav = favouritesList
+          .firstWhere((fav) => fav.recipe.id == recipe.id, orElse: () => null);
+      return RecipeUserFavourite(
+          recipe: recipe, isFavourite: userFav?.isFavourite ?? false);
+    },
+  );
+});
+
+final favouriteRecipesProvider =
+    StreamProvider.autoDispose<List<RecipeUserFavourite>>(
+  (ref) => ref.read(databaseProvider).favouriteRecipesStream,
 );
 
 class FirestoreDatabase implements Database {
@@ -84,6 +108,21 @@ class FirestoreDatabase implements Database {
   }
 
   @override
+  Future<void> addRecipeToFavourites({@required Recipe recipe}) async {
+    _service.addData(
+      path: FirestorePath.userFavourites(uid),
+      data: recipe.toMap(),
+    );
+  }
+
+  @override
+  Future<void> removeRecipeFromFavourites({@required String recipeId}) async {
+    _service.deleteData(
+      path: FirestorePath.userFavouriteRecipe(uid, recipeId),
+    );
+  }
+
+  @override
   Stream<Recipe> recipeStream({@required String recipeId}) {
     return _service.documentStream(
       path: FirestorePath.userRecipe(recipeId),
@@ -134,10 +173,11 @@ class FirestoreDatabase implements Database {
     );
   }
 
-  Stream<List<Recipe>> get favouriteRecipesStream {
+  Stream<List<RecipeUserFavourite>> get favouriteRecipesStream {
     return _service.collectionStream(
       path: FirestorePath.userFavourites(uid),
-      builder: (data, documentId) => Recipe.fromMap(data, documentId),
+      builder: (data, documentId) =>
+          RecipeUserFavourite.fromMap(data, documentId),
     );
   }
 

@@ -1,3 +1,4 @@
+import 'package:chefbook/models/recipeUserFavourite.dart';
 import 'package:meta/meta.dart';
 import 'package:chefbook/models/user.dart';
 import 'package:chefbook/models/recipe.dart';
@@ -24,6 +25,10 @@ abstract class Database {
   /// Create a [recipe]
   Future<void> createRecipe({@required Recipe recipe});
 
+  Future<void> addRecipeToFavourites({@required Recipe recipe});
+
+  Future<void> removeRecipeFromFavourites({@required String recipeId});
+
   /// Returns a recipe as a stream using [recipeId]
   Stream<Recipe> recipeStream({@required String recipeId});
 
@@ -44,7 +49,7 @@ abstract class Database {
 
   Stream<List<Cookbook>> get cookbookStream;
 
-  Stream<List<Recipe>> get favouriteRecipesStream;
+  Stream<List<RecipeUserFavourite>> get favouriteRecipesStream;
 
   /// Get initial recipes with [cookbookId]
   Future<List<Recipe>> getFirstRecipesByCookbookId({

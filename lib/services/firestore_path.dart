@@ -10,4 +10,6 @@ class FirestorePath {
   static String userCookbook(String cookbookID) => 'cookbooks/$cookbookID';
   static String recipeUserRating(String recipeId, String uid) =>
       'recipes/$recipeId/ratings/$uid';
+  static String userFavouriteRecipe(String uid, String recipeId) =>
+      'users/$uid/favourites/$recipeId';
 }

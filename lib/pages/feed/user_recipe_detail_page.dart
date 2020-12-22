@@ -4,7 +4,6 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:chefbook/services/firestore_database.dart';
 import 'package:chefbook/pages/recipes/recipe_stat_card.dart';
-// import 'package:chefbook/services/cloud_functions_service.dart';
 
 class UserRecipeDetailPage extends HookWidget {
   UserRecipeDetailPage({Key key}) : super(key: key);
@@ -13,10 +12,13 @@ class UserRecipeDetailPage extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final String recipeId = ModalRoute.of(context).settings.arguments;
-    final userRecipeStream = useProvider(userRecipeProvider(recipeId));
+    final userRecipeStream = useProvider(favouriteRecipeProvider(recipeId));
 
     return userRecipeStream.when(
-      data: (userRecipe) => UserRecipeDetail(userRecipe: userRecipe),
+      data: (userRecipe) => UserRecipeDetail(
+        userRecipe: userRecipe.recipe,
+        isFavourite: userRecipe.isFavourite,
+      ),
       loading: () => Center(child: const CircularProgressIndicator()),
       error: (error, stack) => const Text('Oops'),
     );
@@ -24,52 +26,29 @@ class UserRecipeDetailPage extends HookWidget {
 }
 
 class UserRecipeDetail extends HookWidget {
-  UserRecipeDetail({@required this.userRecipe, Key key}) : super(key: key);
+  UserRecipeDetail({
+    @required this.userRecipe,
+    @required this.isFavourite,
+    Key key,
+  }) : super(key: key);
 
   final Recipe userRecipe;
+  final bool isFavourite;
 
   @override
   Widget build(BuildContext context) {
     final publicUserDataStream = useProvider(
       publicUserDataProvider(userRecipe.createdBy),
     );
-    // final userData = useProvider(userDataProvider)?.data?.value;
-    // final followLoading = useState(false);
-    // final unfollowLoading = useState(false);
-    // final likeLoading = useState(false);
-    // final unlikeLoading = useState(false);
 
-    Future<void> likeRecipe() async {
-      // likeLoading.value = true;
-      // await context
-      //     .read(cloudFunctionsProvider)
-      //     .likeRecipe(recipeId: userRecipe.id);
-      // likeLoading.value = false;
-    }
+    Future<void> addRecipeToFavourites(Recipe recipe) async => await context
+        .read(databaseProvider)
+        .addRecipeToFavourites(recipe: recipe);
 
-    Future<void> unlikeRecipe() async {
-      // unlikeLoading.value = true;
-      // await context
-      //     .read(cloudFunctionsProvider)
-      //     .unlikeRecipe(recipeId: userRecipe.id);
-      // unlikeLoading.value = false;
-    }
-
-    Future<void> followUser() async {
-      // followLoading.value = true;
-      // await context
-      //     .read(cloudFunctionsProvider)
-      //     .followUser(uid: publicUserData.uid);
-      // followLoading.value = false;
-    }
-
-    Future<void> unfollowUser() async {
-      // unfollowLoading.value = true;
-      // await context
-      //     .read(cloudFunctionsProvider)
-      //     .unfollowUser(uid: publicUserData.uid);
-      // unfollowLoading.value = false;
-    }
+    Future<void> removeRecipeFromFavourites(String recipeId) async =>
+        await context
+            .read(databaseProvider)
+            .removeRecipeFromFavourites(recipeId: recipeId);
 
     return publicUserDataStream.when(
       data: (publicUserData) => Scaffold(
@@ -106,46 +85,34 @@ class UserRecipeDetail extends HookWidget {
                             style: Theme.of(context).textTheme.headline6,
                           ),
                         ),
-                        // IconButton(
-                        //   icon: Icon(Icons.share),
-                        //   onPressed: () {},
-                        // ),
-                        // if (userData != null)
-                        //   userData.favourites.contains(userRecipe.id)
-                        //       ? IconButton(
-                        //           icon: unlikeLoading.value == false
-                        //               ? Icon(
-                        //                   Icons.favorite_border,
-                        //                   color: Colors.red,
-                        //                 )
-                        //               : CircularProgressIndicator(
-                        //                   strokeWidth: 2.0,
-                        //                 ),
-                        //           onPressed: unlikeLoading.value == false
-                        //               ? unlikeRecipe
-                        //               : () {},
-                        //         )
-                        //       : IconButton(
-                        //           icon: likeLoading.value == false
-                        //               ? Icon(
-                        //                   Icons.favorite,
-                        //                   color: Colors.red,
-                        //                 )
-                        //               : CircularProgressIndicator(
-                        //                   strokeWidth: 2.0,
-                        //                 ),
-                        //           onPressed: likeLoading.value == false
-                        //               ? likeRecipe
-                        //               : () {},
-                        //         ),
-                        // Text(
-                        //   '${userRecipe.likesCount}',
-                        //   style: Theme.of(context).textTheme.headline6,
-                        // ),
+                        IconButton(
+                          icon: Icon(Icons.share),
+                          onPressed: () {},
+                        ),
+                        isFavourite
+                            ? IconButton(
+                                icon: Icon(
+                                  Icons.favorite,
+                                  color: Colors.red,
+                                ),
+                                onPressed: () =>
+                                    addRecipeToFavourites(userRecipe),
+                              )
+                            : IconButton(
+                                icon: Icon(
+                                  Icons.favorite_border,
+                                  color: Colors.red,
+                                ),
+                                onPressed: () =>
+                                    removeRecipeFromFavourites(userRecipe.id),
+                              ),
+                        Text(
+                          '${userRecipe.favouritesCount}',
+                          style: Theme.of(context).textTheme.headline6,
+                        ),
                       ],
                     ),
                     SizedBox(height: 16.0),
-                    // if (publicUserData != null && userData != null)
                     Row(
                       children: [
                         CircleAvatar(
@@ -161,42 +128,6 @@ class UserRecipeDetail extends HookWidget {
                             style: Theme.of(context).textTheme.subtitle1,
                           ),
                         ),
-                        // if (!userData.following
-                        //         .contains(publicUserData.uid) &&
-                        //     publicUserData.uid != userData.uid)
-                        //   OutlineButton(
-                        //     onPressed: followLoading.value == false
-                        //         ? followUser
-                        //         : () {},
-                        //     child: followLoading.value == false
-                        //         ? Text(
-                        //             'Follow',
-                        //             style: Theme.of(context)
-                        //                 .textTheme
-                        //                 .button,
-                        //           )
-                        //         : CircularProgressIndicator(
-                        //             strokeWidth: 2.0,
-                        //           ),
-                        //   ),
-                        // if (userData.following
-                        //         .contains(publicUserData.uid) &&
-                        //     publicUserData.uid != userData.uid)
-                        //   OutlineButton(
-                        //     onPressed: followLoading.value == false
-                        //         ? unfollowUser
-                        //         : () {},
-                        //     child: followLoading.value == false
-                        //         ? Text(
-                        //             'UnFollow',
-                        //             style: Theme.of(context)
-                        //                 .textTheme
-                        //                 .button,
-                        //           )
-                        //         : CircularProgressIndicator(
-                        //             strokeWidth: 2.0,
-                        //           ),
-                        //   )
                       ],
                     ),
                     SizedBox(height: 16.0),
