@@ -1,3 +1,4 @@
+import 'package:chefbook/pages/feed/user_recipe_detail_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -48,11 +49,11 @@ class FeedPage extends HookWidget {
                     final publicRecipe = publicRecipeList[index];
                     return GestureDetector(
                       onTap: () async {
-                        // await Navigator.pushNamed(
-                        //   context,
-                        //   RecipesPage.routeName,
-                        //   arguments: cookbook,
-                        // );
+                        await Navigator.pushNamed(
+                          context,
+                          UserRecipeDetailPage.routeName,
+                          arguments: publicRecipe.id,
+                        );
                       },
                       child: UserRecipeCard(
                         userRecipe: publicRecipe,

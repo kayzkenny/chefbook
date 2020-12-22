@@ -11,11 +11,8 @@ import 'package:chefbook/pages/account/profile_page.dart';
 import 'package:chefbook/pages/account/network_page.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:chefbook/pages/recipes/recipe_detail_page.dart';
-// import 'package:chefbook/pages/recipes/public_user_page.dart';
-// import 'package:chefbook/pages/recipes/my_recipes_page.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
-// import 'package:chefbook/pages/feed/user_recipe_detail_page.dart';
-// import 'package:chefbook/pages/recipes/my_recipe_detail_page.dart';
+import 'package:chefbook/pages/feed/user_recipe_detail_page.dart';
 
 FirebaseAnalytics analytics;
 
@@ -54,7 +51,7 @@ class MyApp extends StatelessWidget {
         RecipesPage.routeName: (context) => RecipesPage(),
         // PublicUserPage.routeName: (context) => PublicUserPage(),
         RecipeDetailPage.routeName: (context) => RecipeDetailPage(),
-        // UserRecipeDetailPage.routeName: (context) => UserRecipeDetailPage(),
+        UserRecipeDetailPage.routeName: (context) => UserRecipeDetailPage(),
       },
 
       home: LandingPage(),
