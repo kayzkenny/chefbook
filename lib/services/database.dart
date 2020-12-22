@@ -44,6 +44,8 @@ abstract class Database {
 
   Stream<List<Cookbook>> get cookbookStream;
 
+  Stream<List<Recipe>> get favouriteRecipesStream;
+
   /// Get initial recipes with [cookbookId]
   Future<List<Recipe>> getFirstRecipesByCookbookId({
     @required String cookbookId,

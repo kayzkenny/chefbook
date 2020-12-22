@@ -86,7 +86,7 @@ class FirestoreDatabase implements Database {
   @override
   Stream<Recipe> recipeStream({@required String recipeId}) {
     return _service.documentStream(
-      path: FirestorePath.recipe(recipeId),
+      path: FirestorePath.userRecipe(recipeId),
       builder: (data, documentId) => Recipe.fromMap(data, documentId),
     );
   }
@@ -94,7 +94,7 @@ class FirestoreDatabase implements Database {
   @override
   Future<void> updateRecipe({@required Recipe recipe}) async {
     _service.updateData(
-      path: FirestorePath.recipe(recipe.id),
+      path: FirestorePath.userRecipe(recipe.id),
       data: recipe.toMap(),
     );
   }
@@ -102,7 +102,7 @@ class FirestoreDatabase implements Database {
   @override
   Future<void> deleteRecipe({@required String recipeId}) async {
     _service.deleteData(
-      path: FirestorePath.recipe(recipeId),
+      path: FirestorePath.userRecipe(recipeId),
     );
   }
 
@@ -112,7 +112,7 @@ class FirestoreDatabase implements Database {
     @required String recipeId,
   }) async {
     _service.updateData(
-      path: FirestorePath.recipe(recipeId),
+      path: FirestorePath.userRecipe(recipeId),
       data: {"imageURL": imageURL},
     );
   }
@@ -120,7 +120,7 @@ class FirestoreDatabase implements Database {
   @override
   Future<void> deleteRecipeImage({@required String recipeId}) async {
     _service.deleteField(
-      path: FirestorePath.recipe(recipeId),
+      path: FirestorePath.userRecipe(recipeId),
       fieldName: 'imageURL',
     );
   }
@@ -131,6 +131,13 @@ class FirestoreDatabase implements Database {
       path: FirestorePath.cookbooks(),
       queryBuilder: (query) => query.where('createdBy', isEqualTo: uid),
       builder: (data, documentId) => Cookbook.fromMap(data, documentId),
+    );
+  }
+
+  Stream<List<Recipe>> get favouriteRecipesStream {
+    return _service.collectionStream(
+      path: FirestorePath.userFavourites(uid),
+      builder: (data, documentId) => Recipe.fromMap(data, documentId),
     );
   }
 
@@ -219,7 +226,7 @@ class FirestoreDatabase implements Database {
   @override
   Future<void> updateCookbook({@required Cookbook cookbook}) async {
     _service.updateData(
-      path: FirestorePath.userCookbooks(cookbook.id),
+      path: FirestorePath.userCookbook(cookbook.id),
       data: cookbook.toMap(),
     );
   }
@@ -227,7 +234,7 @@ class FirestoreDatabase implements Database {
   @override
   Future<void> deleteCookbook({@required String cookbookId}) async {
     _service.deleteData(
-      path: FirestorePath.userCookbooks(cookbookId),
+      path: FirestorePath.userCookbook(cookbookId),
     );
   }
 
@@ -237,7 +244,7 @@ class FirestoreDatabase implements Database {
     @required String cookbookID,
   }) async {
     _service.updateData(
-      path: FirestorePath.userCookbooks(cookbookID),
+      path: FirestorePath.userCookbook(cookbookID),
       data: {"coverURL": coverURL},
     );
   }
@@ -245,7 +252,7 @@ class FirestoreDatabase implements Database {
   @override
   Future<void> deleteCookbookCover({@required String cookbookID}) async {
     _service.deleteField(
-      path: FirestorePath.userCookbooks(cookbookID),
+      path: FirestorePath.userCookbook(cookbookID),
       fieldName: 'coverURL',
     );
   }

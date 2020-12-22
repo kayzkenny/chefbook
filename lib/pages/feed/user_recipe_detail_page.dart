@@ -33,7 +33,7 @@ class UserRecipeDetail extends HookWidget {
     final publicUserDataStream = useProvider(
       publicUserDataProvider(userRecipe.createdBy),
     );
-    final userData = useProvider(userDataProvider)?.data?.value;
+    // final userData = useProvider(userDataProvider)?.data?.value;
     // final followLoading = useState(false);
     // final unfollowLoading = useState(false);
     // final likeLoading = useState(false);
