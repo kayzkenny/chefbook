@@ -107,6 +107,8 @@ class FirestoreRepository {
           }
 
           _hasMoreRecipes = generalRecipes.length == pageLimit;
+        } else {
+          _publicRecipesController.addError('No Recipes Available');
         }
       },
     );
@@ -152,6 +154,8 @@ class FirestoreRepository {
           }
 
           _hasMorePublicRecipes = generalPublicRecipes.length == pageLimit;
+        } else {
+          _publicRecipesController.addError('No Recipes Available');
         }
       },
     );
@@ -197,6 +201,8 @@ class FirestoreRepository {
           }
 
           _hasMoreCookbooks = generalCookbooks.length == pageLimit;
+        } else {
+          _publicRecipesController.addError('No Cookbooks Available');
         }
       },
     );

@@ -8,6 +8,9 @@ const ADMIN_KEY = apiKeys.ADMIN_KEY;
 const client = algoliasearch(APP_ID, ADMIN_KEY);
 const index = client.initIndex("chef-book-recipes");
 
+const increment = firebase.firestore.FieldValue.increment(1);
+const decrement = firebase.firestore.FieldValue.increment(-1);
+
 /**
  * Firestore trigger for (new recipe creation)
  * @returns {Promise}
@@ -15,14 +18,38 @@ const index = client.initIndex("chef-book-recipes");
 exports.onCreated = functions.firestore
   .document("recipes/{recipeId}")
   .onCreate((snapshot) => {
-    const data = snapshot.data();
-    const objectID = snapshot.id;
+  const data = snapshot.data();
+  const objectID = snapshot.id;
+  const uid = data.createdBy;
+  const cookbookId = data.cookbookId;
 
-  return index
+  const cookbookDocumentRef = admin
+    .firestore()
+    .collection("cookbooks")
+    .doc(cookbookId);
+
+  const userDocumentRef = admin
+    .firestore()
+    .collection("users")
+    .doc(uid);
+
+  const incrementUserRecipeCount = userDocumentRef
+    .update({ recipeCount: increment });
+
+  const incrementCookbookRecipeCount = cookbookDocumentRef
+    .update({ recipeCount: increment });
+
+  const addRecipeToIndex = index
     .saveObject({ ...data, objectID })
     .then(() => {
       console.log("Added recipe to algolia index");
-    });
+  });
+
+  return Promise.all([
+    addRecipeToIndex, 
+    incrementUserRecipeCount, 
+    incrementCookbookRecipeCount,
+  ]);
 });
 
 /**
@@ -32,8 +59,8 @@ exports.onCreated = functions.firestore
 exports.onUpdated = functions.firestore
   .document("recipes/{recipeId}")
   .onUpdate((change) => {
-    const newData = change.after.data();
-    const objectID = change.after.id;
+  const newData = change.after.data();
+  const objectID = change.after.id;
 
   return index.saveObject({ ...newData, objectID }).then(() => {
     console.log("Updated recipe in algolia index");
@@ -47,9 +74,34 @@ exports.onUpdated = functions.firestore
 exports.onDeleted = functions.firestore
   .document("recipes/{recipeId}")
   .onDelete((snapshot) => {
-    const objectID = snapshot.id;
+  const data = snapshot.data();
+  const objectID = snapshot.id;
+  const uid = data.createdBy;
+  const cookbookId = data.cookbookId;
 
-  return index.deleteObject(objectID).then(() => {
+  const cookbookDocumentRef = admin
+    .firestore()
+    .collection("cookbooks")
+    .doc(cookbookId);
+
+  const userDocumentRef = admin
+    .firestore()
+    .collection("users")
+    .doc(uid);
+
+  const decrementUserRecipeCount = userDocumentRef
+  .update({ recipeCount: decrement });
+
+  const decrementCookbookRecipeCount = cookbookDocumentRef
+    .update({ recipeCount: decrement });
+
+  const removeRecipeFromIndex = index.deleteObject(objectID).then(() => {
     console.log("Deleted recipe in algolia index");
   });
+
+  return Promise.all([
+    removeRecipeFromIndex, 
+    decrementUserRecipeCount, 
+    decrementCookbookRecipeCount,
+  ]);
 });

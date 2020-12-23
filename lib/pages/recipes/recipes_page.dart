@@ -35,11 +35,9 @@ class RecipesPage extends HookWidget {
       );
     }
 
-    getMoreRecipes() {
-      context
-          .read(firestoreRepositoryProvider)
-          .requestMoreRecipes(cookbookId: cookbook.id);
-    }
+    getMoreRecipes() => context
+        .read(firestoreRepositoryProvider)
+        .requestMoreRecipes(cookbookId: cookbook.id);
 
     useEffect(() {
       scrollController.addListener(() {
@@ -61,29 +59,25 @@ class RecipesPage extends HookWidget {
           ),
         ),
         body: SafeArea(
-          child: recipeList.isEmpty
-              ? Center(
-                  child: Text('No Recipes to Show'),
-                )
-              : ListView.builder(
-                  itemCount: recipeList.length,
-                  controller: scrollController,
-                  padding: EdgeInsets.all(20.0),
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  itemBuilder: (context, index) {
-                    final recipe = recipeList[index];
-                    return GestureDetector(
-                      onTap: () async {
-                        Navigator.pushNamed(
-                          context,
-                          RecipeDetailPage.routeName,
-                          arguments: recipe.id,
-                        );
-                      },
-                      child: RecipeCard(recipe: recipe),
-                    );
-                  },
-                ),
+          child: ListView.builder(
+            itemCount: recipeList.length,
+            controller: scrollController,
+            padding: EdgeInsets.all(20.0),
+            physics: const AlwaysScrollableScrollPhysics(),
+            itemBuilder: (context, index) {
+              final recipe = recipeList[index];
+              return GestureDetector(
+                onTap: () async {
+                  Navigator.pushNamed(
+                    context,
+                    RecipeDetailPage.routeName,
+                    arguments: recipe.id,
+                  );
+                },
+                child: RecipeCard(recipe: recipe),
+              );
+            },
+          ),
         ),
         floatingActionButton: FloatingActionButton(
           onPressed: showRecipeForm,
@@ -93,7 +87,9 @@ class RecipesPage extends HookWidget {
         ),
       ),
       loading: () => Center(child: const CircularProgressIndicator()),
-      error: (error, stack) => const Text('Oops'),
+      error: (error, stack) => Center(
+        child: Text('${error.toString()}'),
+      ),
     );
   }
 }

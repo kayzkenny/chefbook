@@ -14,9 +14,8 @@ class CookbookPage extends HookWidget {
     final scrollController = useScrollController();
     final cookbookStream = useProvider(cookbooksProvider);
 
-    getMoreCookbooks() {
-      context.read(firestoreRepositoryProvider).requestMoreCookbooks();
-    }
+    getMoreCookbooks() =>
+        context.read(firestoreRepositoryProvider).requestMoreCookbooks();
 
     useEffect(() {
       scrollController.addListener(() {
@@ -38,31 +37,25 @@ class CookbookPage extends HookWidget {
           ),
         ),
         body: SafeArea(
-          child: cookbookList.isEmpty
-              ? Center(
-                  child: Text('No Cookbooks to Show'),
-                )
-              : ListView.builder(
-                  controller: scrollController,
-                  padding: EdgeInsets.all(20.0),
-                  itemCount: cookbookList.length,
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  itemBuilder: (BuildContext context, int index) {
-                    final cookbook = cookbookList[index];
-                    return GestureDetector(
-                      onTap: () async {
-                        await Navigator.pushNamed(
-                          context,
-                          RecipesPage.routeName,
-                          arguments: cookbook,
-                        );
-                      },
-                      child: CookbookCard(
-                        cookbook: cookbookList[index],
-                      ),
-                    );
-                  },
-                ),
+          child: ListView.builder(
+            controller: scrollController,
+            padding: EdgeInsets.all(20.0),
+            itemCount: cookbookList.length,
+            physics: const AlwaysScrollableScrollPhysics(),
+            itemBuilder: (BuildContext context, int index) {
+              final cookbook = cookbookList[index];
+              return GestureDetector(
+                onTap: () async {
+                  await Navigator.pushNamed(
+                    context,
+                    RecipesPage.routeName,
+                    arguments: cookbook,
+                  );
+                },
+                child: CookbookCard(cookbook: cookbookList[index]),
+              );
+            },
+          ),
         ),
         floatingActionButton: FloatingActionButton(
           onPressed: () async {
@@ -78,7 +71,9 @@ class CookbookPage extends HookWidget {
         ),
       ),
       loading: () => Center(child: const CircularProgressIndicator()),
-      error: (error, stack) => const Text('Oops'),
+      error: (error, stack) => Center(
+        child: Text('${error.toString()}'),
+      ),
     );
   }
 }
