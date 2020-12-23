@@ -5,6 +5,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:chefbook/pages/landing_page.dart';
 import 'package:firebase_analytics/observer.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:chefbook/pages/search/search_page.dart';
 import 'package:chefbook/pages/recipes/recipe_form.dart';
 import 'package:chefbook/pages/recipes/recipes_page.dart';
 import 'package:chefbook/pages/account/profile_page.dart';
@@ -45,7 +46,7 @@ class MyApp extends StatelessWidget {
       // Named Routes
       routes: {
         RecipeForm.routeName: (context) => RecipeForm(),
-        // SearchPage.routeName: (context) => SearchPage(),
+        SearchPage.routeName: (context) => SearchPage(),
         ProfilePage.routeName: (context) => ProfilePage(),
         NetworkPage.routeName: (context) => NetworkPage(),
         RecipesPage.routeName: (context) => RecipesPage(),

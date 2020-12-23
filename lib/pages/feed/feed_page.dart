@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:chefbook/pages/search/search_page.dart';
 import 'package:chefbook/repository/firestore_repo.dart';
 import 'package:chefbook/pages/feed/user_recipe_card.dart';
 import 'package:chefbook/pages/feed/user_recipe_detail_page.dart';
@@ -34,6 +35,14 @@ class FeedPage extends HookWidget {
             'Recipes',
             style: Theme.of(context).textTheme.headline5,
           ),
+          actions: [
+            IconButton(
+              icon: Icon(Icons.search),
+              onPressed: () {
+                Navigator.pushNamed(context, SearchPage.routeName);
+              },
+            )
+          ],
         ),
         body: SafeArea(
           child: ListView.builder(

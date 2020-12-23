@@ -87,8 +87,22 @@ class RecipesPage extends HookWidget {
         ),
       ),
       loading: () => Center(child: const CircularProgressIndicator()),
-      error: (error, stack) => Center(
-        child: Text('${error.toString()}'),
+      error: (error, stack) => Scaffold(
+        appBar: AppBar(
+          title: Text(
+            'My Recipes',
+            style: Theme.of(context).textTheme.headline5,
+          ),
+        ),
+        body: Center(
+          child: Text('${error.toString()}'),
+        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: showRecipeForm,
+          child: Icon(FeatherIcons.plus),
+          backgroundColor:
+              Theme.of(context).floatingActionButtonTheme.backgroundColor,
+        ),
       ),
     );
   }

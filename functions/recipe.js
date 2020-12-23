@@ -2,14 +2,14 @@ const apiKeys = require("./api_keys");
 const admin = require("firebase-admin");
 const algoliasearch = require("algoliasearch");
 const functions = require("firebase-functions");
-// Initialize Algolia Client
+
 const APP_ID = apiKeys.APP_ID;
 const ADMIN_KEY = apiKeys.ADMIN_KEY;
 const client = algoliasearch(APP_ID, ADMIN_KEY);
 const index = client.initIndex("chef-book-recipes");
 
-const increment = firebase.firestore.FieldValue.increment(1);
-const decrement = firebase.firestore.FieldValue.increment(-1);
+const increment = admin.firestore.FieldValue.increment(1);
+const decrement = admin.firestore.FieldValue.increment(-1);
 
 /**
  * Firestore trigger for (new recipe creation)
@@ -34,10 +34,14 @@ exports.onCreated = functions.firestore
     .doc(uid);
 
   const incrementUserRecipeCount = userDocumentRef
-    .update({ recipeCount: increment });
+    .update({ recipeCount: increment }).then(() => {
+      console.log("Incremented user recipe count");
+  });
 
   const incrementCookbookRecipeCount = cookbookDocumentRef
-    .update({ recipeCount: increment });
+    .update({ recipeCount: increment }).then(() => {
+      console.log("Incremented cookbook recipe count");
+  });
 
   const addRecipeToIndex = index
     .saveObject({ ...data, objectID })
@@ -90,13 +94,19 @@ exports.onDeleted = functions.firestore
     .doc(uid);
 
   const decrementUserRecipeCount = userDocumentRef
-  .update({ recipeCount: decrement });
+  .update({ recipeCount: decrement }).then(() => {
+    console.log("Decremented user recipe count");
+  });
 
   const decrementCookbookRecipeCount = cookbookDocumentRef
-    .update({ recipeCount: decrement });
+    .update({ recipeCount: decrement }).then(() => {
+      console.log("Decremented cookbook recipe count");
+  });
 
-  const removeRecipeFromIndex = index.deleteObject(objectID).then(() => {
-    console.log("Deleted recipe in algolia index");
+  const removeRecipeFromIndex = index
+    .deleteObject(objectID)
+    .then(() => {
+      console.log("Deleted recipe in algolia index");
   });
 
   return Promise.all([

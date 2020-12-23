@@ -48,7 +48,7 @@ class Cookbook {
     final String name = data['name'];
     final String coverURL = data['coverURL'];
     final String createdBy = data['createdBy'];
-    final int recipeCount = data['recipesCount'];
+    final int recipeCount = data['recipeCount'];
     final Timestamp createdAt = data['createdAt'];
     final Timestamp lastUpdated = data['lastUpdated'];
 
