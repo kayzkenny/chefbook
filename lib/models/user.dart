@@ -64,10 +64,10 @@ class UserData {
       avatar: avatar ?? null,
       lastName: lastName ?? null,
       firstName: firstName ?? null,
-      recipeCount: recipeCount ?? null,
-      cookbookCount: cookbookCount ?? null,
-      followerCount: followerCount ?? null,
-      followingCount: followingCount ?? null,
+      recipeCount: recipeCount ?? 0,
+      cookbookCount: cookbookCount ?? 0,
+      followerCount: followerCount ?? 0,
+      followingCount: followingCount ?? 0,
     );
   }
 }
