@@ -1,10 +1,9 @@
-import 'package:chefbook/pages/feed/user_recipe_card.dart';
-import 'package:chefbook/pages/feed/user_recipe_detail_page.dart';
-import 'package:chefbook/repository/firestore_repo.dart';
-import 'package:chefbook/services/firestore_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:chefbook/repository/firestore_repo.dart';
+import 'package:chefbook/pages/feed/user_recipe_card.dart';
+import 'package:chefbook/pages/feed/user_recipe_detail_page.dart';
 
 class FavouritesPage extends HookWidget {
   const FavouritesPage({Key key}) : super(key: key);

@@ -1,7 +1,7 @@
 import 'dart:async';
 
-import 'package:chefbook/models/user.dart';
 import 'package:flutter/material.dart';
+import 'package:chefbook/models/user.dart';
 import 'package:chefbook/models/recipe.dart';
 import 'package:chefbook/services/auth.dart';
 import 'package:chefbook/models/cookbook.dart';
@@ -56,14 +56,36 @@ final paginatedFavouriteRecipesProvider = StreamProvider<List<Recipe>>(
   },
 );
 
-// final userDataProvider = StreamProvider.autoDispose<UserData>(
-//   (ref) {
-//     ref.onDispose(() {
-//       ref.read(firestoreRepositoryProvider).closeUserDataController();
-//     });
-//     return ref.read(firestoreRepositoryProvider).listenToUserDataRealTime();
-//   },
-// );
+final paginatedFollowingProvider = StreamProvider<List<UserData>>(
+  (ref) {
+    // ref.onDispose(() {
+    //   ref.read(firestoreRepositoryProvider).closeCookbooksController();
+    // });
+    return ref
+        .read(firestoreRepositoryProvider)
+        .listenToUserFollowingRealTime();
+  },
+);
+
+final paginatedFollowersProvider = StreamProvider<List<UserData>>(
+  (ref) {
+    // ref.onDispose(() {
+    //   ref.read(firestoreRepositoryProvider).closeCookbooksController();
+    // });
+    return ref
+        .read(firestoreRepositoryProvider)
+        .listenToUserFollowersRealTime();
+  },
+);
+
+final userDataProvider = StreamProvider.autoDispose<UserData>(
+  (ref) {
+    ref.onDispose(() {
+      ref.read(firestoreRepositoryProvider).closeUserDataController();
+    });
+    return ref.read(firestoreRepositoryProvider).listenToUserDataRealTime();
+  },
+);
 
 // final publicUserDataProvider =
 //     StreamProvider.autoDispose.family<UserData, String>(
@@ -85,27 +107,45 @@ class FirestoreRepository {
       FirebaseFirestore.instance.collection('recipes');
   final _cookbookCollectionReference =
       FirebaseFirestore.instance.collection('cookbooks');
-  final _recipesController = StreamController<List<Recipe>>.broadcast();
-  final _publicRecipesController = StreamController<List<Recipe>>.broadcast();
-  final _cookbooksController = StreamController<List<Cookbook>>.broadcast();
-  final _favouritesController = StreamController<List<Recipe>>.broadcast();
   final _userDataController = StreamController<UserData>.broadcast();
+  final _recipesController = StreamController<List<Recipe>>.broadcast();
+  final _favouritesController = StreamController<List<Recipe>>.broadcast();
   final _publicUserDataController = StreamController<UserData>.broadcast();
+  final _cookbooksController = StreamController<List<Cookbook>>.broadcast();
+  final _publicRecipesController = StreamController<List<Recipe>>.broadcast();
+  final _userFollowingController = StreamController<List<UserData>>.broadcast();
+  final _userFollowersController = StreamController<List<UserData>>.broadcast();
   final _allPagedRecipes = List<List<Recipe>>();
-  final _allPublicPagedRecipes = List<List<Recipe>>();
-  final _allPagedCookbooks = List<List<Cookbook>>();
   final _allPagedFavourites = List<List<Recipe>>();
+  final _allPagedCookbooks = List<List<Cookbook>>();
+  final _allPublicPagedRecipes = List<List<Recipe>>();
+  final _allPagedUserFollowing = List<List<UserData>>();
+  final _allPagedUserFollowers = List<List<UserData>>();
 
   static const int pageLimit = 10;
 
   DocumentSnapshot _lastRecipe;
-  DocumentSnapshot _lastPublicRecipe;
   DocumentSnapshot _lastCookbook;
   DocumentSnapshot _lastFavourite;
+  DocumentSnapshot _lastPublicRecipe;
+  DocumentSnapshot _lastFollowing;
+  DocumentSnapshot _lastFollowers;
   bool _hasMoreRecipes = true;
-  bool _hasMorePublicRecipes = true;
+  bool _hasMoreFollowing = true;
+  bool _hasMoreFollowers = true;
   bool _hasMoreCookbooks = true;
   bool _hasMoreFavourites = true;
+  bool _hasMorePublicRecipes = true;
+
+  Stream<List<UserData>> listenToUserFollowingRealTime() {
+    _requestUserFollowing();
+    return _userFollowingController.stream;
+  }
+
+  Stream<List<UserData>> listenToUserFollowersRealTime() {
+    _requestUserFollowers();
+    return _userFollowersController.stream;
+  }
 
   Stream<List<Recipe>> listenToRecipesRealTime({@required String cookbookId}) {
     _requestRecipes(cookbookId: cookbookId);
@@ -159,6 +199,106 @@ class FirestoreRepository {
     );
 
     _publicUserDataController.add(userData);
+  }
+
+  void _requestUserFollowing() {
+    Query pageUserFollowingQuery = FirebaseFirestore.instance
+        .collection('users')
+        .doc(uid)
+        .collection('following')
+        .orderBy('firstName', descending: true)
+        .limit(pageLimit);
+
+    if (_lastFollowing != null) {
+      pageUserFollowingQuery =
+          pageUserFollowingQuery.startAfterDocument(_lastRecipe);
+    }
+
+    if (!_hasMoreFollowing) return;
+
+    int currentRequestIndex = _allPagedUserFollowing.length;
+
+    pageUserFollowingQuery.snapshots().listen(
+      (snapshot) {
+        if (snapshot.docs.isNotEmpty) {
+          List<UserData> generalFollowing = snapshot.docs
+              .map((snapshot) => UserData.fromMap(snapshot.data(), snapshot.id))
+              .toList();
+
+          bool pageExists = currentRequestIndex < _allPagedUserFollowing.length;
+
+          if (pageExists) {
+            _allPagedUserFollowing[currentRequestIndex] = generalFollowing;
+          } else {
+            _allPagedUserFollowing.add(generalFollowing);
+          }
+
+          var allFollowing = _allPagedUserFollowing.fold<List<UserData>>(
+              List<UserData>(),
+              (previousValue, pageItems) => previousValue..addAll(pageItems));
+
+          _userFollowingController.add(allFollowing);
+
+          if (currentRequestIndex == _allPagedUserFollowing.length - 1) {
+            _lastFollowing = snapshot.docs.last;
+          }
+
+          _hasMoreFollowing = generalFollowing.length == pageLimit;
+        } else {
+          _userFollowingController.addError('You are not following anyone');
+        }
+      },
+    );
+  }
+
+  void _requestUserFollowers() {
+    Query pageUserFollowersQuery = FirebaseFirestore.instance
+        .collection('users')
+        .doc(uid)
+        .collection('followers')
+        .orderBy('firstName', descending: true)
+        .limit(pageLimit);
+
+    if (_lastFollowers != null) {
+      pageUserFollowersQuery =
+          pageUserFollowersQuery.startAfterDocument(_lastFollowers);
+    }
+
+    if (!_hasMoreFollowers) return;
+
+    int currentRequestIndex = _allPagedUserFollowers.length;
+
+    pageUserFollowersQuery.snapshots().listen(
+      (snapshot) {
+        if (snapshot.docs.isNotEmpty) {
+          List<UserData> generalFollowers = snapshot.docs
+              .map((snapshot) => UserData.fromMap(snapshot.data(), snapshot.id))
+              .toList();
+
+          bool pageExists = currentRequestIndex < _allPagedUserFollowers.length;
+
+          if (pageExists) {
+            _allPagedUserFollowers[currentRequestIndex] = generalFollowers;
+          } else {
+            _allPagedUserFollowers.add(generalFollowers);
+          }
+
+          var allFollowers = _allPagedUserFollowers.fold<List<UserData>>(
+              List<UserData>(),
+              (previousValue, pageItems) => previousValue..addAll(pageItems));
+
+          _userFollowersController.add(allFollowers);
+
+          if (currentRequestIndex == _allPagedUserFollowers.length - 1) {
+            _lastFollowers = snapshot.docs.last;
+          }
+
+          _hasMoreFollowers = generalFollowers.length == pageLimit;
+        } else {
+          _userFollowersController.addError('You have no followers');
+        }
+      },
+    );
   }
 
   void _requestRecipes({@required String cookbookId}) {
@@ -361,13 +501,17 @@ class FirestoreRepository {
 
   void requestMoreFavourites() => _requestFavourites();
 
+  void requestMoreFollowing() => _requestUserFollowing();
+
+  void requestMoreFollowers() => _requestUserFollowers();
+
   // void closeRecipesController() => _recipesController.close();
 
   // void closePublicRecipesController() => _publicRecipesController.close();
 
   // void closeCookbooksController() => _cookbooksController.close();
 
-  // void closeUserDataController() => _userDataController.done;
+  void closeUserDataController() => _userDataController.done;
 
   // void closePublicUserDataController() => _publicUserDataController.done;
 }

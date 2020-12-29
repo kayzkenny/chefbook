@@ -14,9 +14,9 @@ final databaseProvider = Provider<Database>(
   (ref) => FirestoreDatabase(uid: ref.watch(authProvider).currentUser().uid),
 );
 
-final userDataProvider = StreamProvider<UserData>(
-  (ref) => ref.read(databaseProvider).userDataStream,
-);
+// final userDataProvider = StreamProvider<UserData>(
+//   (ref) => ref.read(databaseProvider).userDataStream,
+// );
 
 final publicUserDataProvider = StreamProvider.family<UserData, String>(
   (ref, uid) => ref.read(databaseProvider).getUserStreamById(uid: uid),
