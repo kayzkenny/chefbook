@@ -14,42 +14,44 @@ final databaseProvider = Provider<Database>(
   (ref) => FirestoreDatabase(uid: ref.watch(authProvider).currentUser().uid),
 );
 
-final userDataProvider = StreamProvider.autoDispose<UserData>(
+final userDataProvider = StreamProvider<UserData>(
   (ref) => ref.read(databaseProvider).userDataStream,
 );
 
-final publicUserDataProvider =
-    StreamProvider.autoDispose.family<UserData, String>(
+final publicUserDataProvider = StreamProvider.family<UserData, String>(
   (ref, uid) => ref.read(databaseProvider).getUserStreamById(uid: uid),
 );
 
-final userRecipeProvider = StreamProvider.autoDispose.family<Recipe, String>(
+final userRecipeProvider = StreamProvider.family<Recipe, String>(
   (ref, recipeId) => FirestoreDatabase(
     uid: ref.watch(authProvider).currentUser().uid,
   ).recipeStream(recipeId: recipeId),
 );
 
-final favouriteRecipeProvider = StreamProvider.autoDispose
-    .family<RecipeUserFavourite, String>((ref, recipeId) {
+final allFavouriteRecipesProvider = StreamProvider<List<RecipeUserFavourite>>(
+  (ref) => ref.read(databaseProvider).favouriteRecipesStream,
+);
+
+final favouriteRecipeProvider =
+    StreamProvider.family<RecipeUserFavourite, String>((ref, recipeId) {
   final recipe = ref.watch(userRecipeProvider(recipeId).stream);
-  final favouritesList = ref.watch(favouriteRecipesProvider.stream);
+  final favouritesList = ref.watch(allFavouriteRecipesProvider.stream);
 
   return Rx.combineLatest2(
     recipe,
     favouritesList,
     (Recipe recipe, List<RecipeUserFavourite> favouritesList) {
-      final userFav = favouritesList
-          .firstWhere((fav) => fav.recipe.id == recipe.id, orElse: () => null);
+      final userFav = favouritesList.firstWhere(
+        (fav) => fav.recipe.id == recipe.id,
+        orElse: () => null,
+      );
       return RecipeUserFavourite(
-          recipe: recipe, isFavourite: userFav?.isFavourite ?? false);
+        recipe: recipe,
+        isFavourite: userFav?.isFavourite ?? false,
+      );
     },
   );
 });
-
-final favouriteRecipesProvider =
-    StreamProvider.autoDispose<List<RecipeUserFavourite>>(
-  (ref) => ref.read(databaseProvider).favouriteRecipesStream,
-);
 
 class FirestoreDatabase implements Database {
   FirestoreDatabase({@required this.uid}) : assert(uid != null);
@@ -109,9 +111,24 @@ class FirestoreDatabase implements Database {
 
   @override
   Future<void> addRecipeToFavourites({@required Recipe recipe}) async {
-    _service.addData(
-      path: FirestorePath.userFavourites(uid),
+    _service.setData(
+      path: FirestorePath.userFavouriteRecipe(uid, recipe.id),
       data: recipe.toMap(),
+    );
+  }
+
+  @override
+  Future<void> addUserToFollowing({@required UserData userData}) async {
+    _service.setData(
+      path: FirestorePath.userFollowing(uid, userData.uid),
+      data: userData.toNetwork(uid),
+    );
+  }
+
+  @override
+  Future<void> removeUserFromFollowing({@required String publicUID}) async {
+    _service.deleteData(
+      path: FirestorePath.userFollowing(uid, publicUID),
     );
   }
 

@@ -1,3 +1,4 @@
+import 'package:chefbook/repository/firestore_repo.dart';
 import 'package:flutter/material.dart';
 import 'package:chefbook/models/recipe.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -20,7 +21,7 @@ class UserRecipeDetailPage extends HookWidget {
         userRecipe: userRecipe.recipe,
         isFavourite: userRecipe.isFavourite,
       ),
-      loading: () => Center(child: const CircularProgressIndicator()),
+      loading: () => Center(child: Text('userRecipestream is loading')),
       error: (error, stack) => const Text('Oops'),
     );
   }
@@ -92,19 +93,20 @@ class UserRecipeDetail extends HookWidget {
                             isFavourite
                                 ? IconButton(
                                     icon: Icon(
+                                      Icons.favorite_border,
+                                      color: Colors.red,
+                                    ),
+                                    onPressed: () => removeRecipeFromFavourites(
+                                      userRecipe.id,
+                                    ),
+                                  )
+                                : IconButton(
+                                    icon: Icon(
                                       Icons.favorite,
                                       color: Colors.red,
                                     ),
                                     onPressed: () =>
                                         addRecipeToFavourites(userRecipe),
-                                  )
-                                : IconButton(
-                                    icon: Icon(
-                                      Icons.favorite_border,
-                                      color: Colors.red,
-                                    ),
-                                    onPressed: () => removeRecipeFromFavourites(
-                                        userRecipe.id),
                                   ),
                             Text(
                               '${userRecipe.favouritesCount}',

@@ -65,6 +65,8 @@ class Recipe {
     return {
       'name': name,
       'serves': serves ?? 0,
+      'createdBy': createdBy,
+      'cookbookId': cookbookId,
       'duration': duration ?? 0,
       'tags': tags ?? <String>[],
       'steps': steps ?? <String>[],

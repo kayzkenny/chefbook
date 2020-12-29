@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:chefbook/models/user.dart';
 import 'package:flutter/material.dart';
 import 'package:chefbook/models/recipe.dart';
 import 'package:chefbook/services/auth.dart';
@@ -14,19 +15,67 @@ final firestoreRepositoryProvider = Provider<FirestoreRepository>(
 // removed autodispose becasue when the recipes page was closed and repopened
 // the page was loading forever
 final recipesProvider = StreamProvider.family<List<Recipe>, String>(
-  (ref, cookbookId) => ref
-      .read(firestoreRepositoryProvider)
-      .listenToRecipesRealTime(cookbookId: cookbookId),
+  (ref, cookbookId) {
+    // ref.onDispose(() {
+    //   ref.read(firestoreRepositoryProvider).closeRecipesController();
+    // });
+    return ref
+        .read(firestoreRepositoryProvider)
+        .listenToRecipesRealTime(cookbookId: cookbookId);
+  },
 );
 
 final publicRecipesProvider = StreamProvider<List<Recipe>>(
-  (ref) =>
-      ref.read(firestoreRepositoryProvider).listenToPublicRecipesRealTime(),
+  (ref) {
+    // ref.onDispose(() {
+    //   ref.read(firestoreRepositoryProvider).closePublicRecipesController();
+    // });
+    return ref
+        .read(firestoreRepositoryProvider)
+        .listenToPublicRecipesRealTime();
+  },
 );
 
 final cookbooksProvider = StreamProvider<List<Cookbook>>(
-  (ref) => ref.read(firestoreRepositoryProvider).listenToCookbooksRealTime(),
+  (ref) {
+    // ref.onDispose(() {
+    //   ref.read(firestoreRepositoryProvider).closeCookbooksController();
+    // });
+    return ref.read(firestoreRepositoryProvider).listenToCookbooksRealTime();
+  },
 );
+
+final paginatedFavouriteRecipesProvider = StreamProvider<List<Recipe>>(
+  (ref) {
+    // ref.onDispose(() {
+    //   ref.read(firestoreRepositoryProvider).closeCookbooksController();
+    // });
+    return ref
+        .read(firestoreRepositoryProvider)
+        .listenToFavouriteRecipesRealTime();
+  },
+);
+
+// final userDataProvider = StreamProvider.autoDispose<UserData>(
+//   (ref) {
+//     ref.onDispose(() {
+//       ref.read(firestoreRepositoryProvider).closeUserDataController();
+//     });
+//     return ref.read(firestoreRepositoryProvider).listenToUserDataRealTime();
+//   },
+// );
+
+// final publicUserDataProvider =
+//     StreamProvider.autoDispose.family<UserData, String>(
+//   (ref, uid) {
+//     ref.onDispose(() {
+//       ref.read(firestoreRepositoryProvider).closePublicUserDataController();
+//     });
+//     return ref
+//         .read(firestoreRepositoryProvider)
+//         .listenToPublicUserDataRealTime(uid);
+//   },
+// );
 
 class FirestoreRepository {
   FirestoreRepository({@required this.uid}) : assert(uid != null);
@@ -39,22 +88,43 @@ class FirestoreRepository {
   final _recipesController = StreamController<List<Recipe>>.broadcast();
   final _publicRecipesController = StreamController<List<Recipe>>.broadcast();
   final _cookbooksController = StreamController<List<Cookbook>>.broadcast();
+  final _favouritesController = StreamController<List<Recipe>>.broadcast();
+  final _userDataController = StreamController<UserData>.broadcast();
+  final _publicUserDataController = StreamController<UserData>.broadcast();
   final _allPagedRecipes = List<List<Recipe>>();
   final _allPublicPagedRecipes = List<List<Recipe>>();
   final _allPagedCookbooks = List<List<Cookbook>>();
+  final _allPagedFavourites = List<List<Recipe>>();
 
   static const int pageLimit = 10;
 
   DocumentSnapshot _lastRecipe;
   DocumentSnapshot _lastPublicRecipe;
   DocumentSnapshot _lastCookbook;
+  DocumentSnapshot _lastFavourite;
   bool _hasMoreRecipes = true;
   bool _hasMorePublicRecipes = true;
   bool _hasMoreCookbooks = true;
+  bool _hasMoreFavourites = true;
 
   Stream<List<Recipe>> listenToRecipesRealTime({@required String cookbookId}) {
     _requestRecipes(cookbookId: cookbookId);
     return _recipesController.stream;
+  }
+
+  Stream<List<Recipe>> listenToFavouriteRecipesRealTime() {
+    _requestFavourites();
+    return _favouritesController.stream;
+  }
+
+  Stream<UserData> listenToUserDataRealTime() {
+    _requestUserData();
+    return _userDataController.stream;
+  }
+
+  Stream<UserData> listenToPublicUserDataRealTime(String uid) {
+    _requestPublicUserData(uid);
+    return _publicUserDataController.stream;
   }
 
   Stream<List<Recipe>> listenToPublicRecipesRealTime() {
@@ -65,6 +135,30 @@ class FirestoreRepository {
   Stream<List<Cookbook>> listenToCookbooksRealTime() {
     _requestCookbooks();
     return _cookbooksController.stream;
+  }
+
+  Future<void> _requestUserData() async {
+    final _userDataSnaphot =
+        await FirebaseFirestore.instance.collection('users').doc(uid).get();
+
+    final userData = UserData.fromMap(
+      _userDataSnaphot.data(),
+      _userDataSnaphot.id,
+    );
+
+    _userDataController.add(userData);
+  }
+
+  Future<void> _requestPublicUserData(String uid) async {
+    final _userDataSnaphot =
+        await FirebaseFirestore.instance.collection('users').doc(uid).get();
+
+    final userData = UserData.fromMap(
+      _userDataSnaphot.data(),
+      _userDataSnaphot.id,
+    );
+
+    _publicUserDataController.add(userData);
   }
 
   void _requestRecipes({@required String cookbookId}) {
@@ -208,10 +302,72 @@ class FirestoreRepository {
     );
   }
 
+  void _requestFavourites() {
+    Query pageFavouriteQuery = FirebaseFirestore.instance
+        .collection('users')
+        .doc(uid)
+        .collection('favourites')
+        // .orderBy('createdAt', descending: true) createdAt field doesn't exist
+        .limit(pageLimit);
+
+    if (_lastFavourite != null) {
+      pageFavouriteQuery =
+          pageFavouriteQuery.startAfterDocument(_lastFavourite);
+    }
+
+    if (!_hasMoreFavourites) return;
+
+    int currentRequestIndex = _allPagedFavourites.length;
+
+    pageFavouriteQuery.snapshots().listen(
+      (snapshot) {
+        if (snapshot.docs.isNotEmpty) {
+          List<Recipe> generalFavourites = snapshot.docs
+              .map((snapshot) => Recipe.fromMap(snapshot.data(), snapshot.id))
+              .toList();
+
+          bool pageExists = currentRequestIndex < _allPagedFavourites.length;
+
+          if (pageExists) {
+            _allPagedFavourites[currentRequestIndex] = generalFavourites;
+          } else {
+            _allPagedFavourites.add(generalFavourites);
+          }
+
+          var allFavourites = _allPagedFavourites.fold<List<Recipe>>(
+              List<Recipe>(),
+              (previousValue, pageItems) => previousValue..addAll(pageItems));
+
+          _favouritesController.add(allFavourites);
+
+          if (currentRequestIndex == _allPagedFavourites.length - 1) {
+            _lastFavourite = snapshot.docs.last;
+          }
+
+          _hasMoreFavourites = generalFavourites.length == pageLimit;
+        } else {
+          _favouritesController.addError('No Favourites Available');
+        }
+      },
+    );
+  }
+
   void requestMoreRecipes({@required String cookbookId}) =>
       _requestRecipes(cookbookId: cookbookId);
 
   void requestMorePublicRecipes() => _requestPublicRecipes();
 
   void requestMoreCookbooks() => _requestCookbooks();
+
+  void requestMoreFavourites() => _requestFavourites();
+
+  // void closeRecipesController() => _recipesController.close();
+
+  // void closePublicRecipesController() => _publicRecipesController.close();
+
+  // void closeCookbooksController() => _cookbooksController.close();
+
+  // void closeUserDataController() => _userDataController.done;
+
+  // void closePublicUserDataController() => _publicUserDataController.done;
 }

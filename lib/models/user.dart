@@ -42,6 +42,22 @@ class UserData {
     };
   }
 
+  /// Convert userData to map such as a firestore document
+  Map<String, dynamic> toNetwork(String addedBy) {
+    return {
+      'lastName': lastName,
+      'firstName': firstName,
+      'uid': uid,
+      'addedBy': addedBy,
+      'email': email,
+      'avatar': avatar,
+      'recipeCount': recipeCount,
+      'cookbookCount': cookbookCount,
+      'followerCount': followerCount,
+      'followingCount': followingCount,
+    };
+  }
+
   /// Construct userData from a map sucg as a firestore document
   factory UserData.fromMap(Map<String, dynamic> data, String documentId) {
     if (data == null) {

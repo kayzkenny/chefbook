@@ -191,7 +191,7 @@ class RecipeDetail extends HookWidget {
                                           borderRadius: BorderRadius.all(
                                               Radius.circular(10.0)),
                                           child: Image.asset(
-                                            'images/logo-jpg.jpg',
+                                            'images/logo.jpg',
                                             height: 200.0,
                                             // width: 300.0,
                                             fit: BoxFit.fill,

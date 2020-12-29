@@ -1,8 +1,8 @@
-import 'package:chefbook/models/recipeUserFavourite.dart';
 import 'package:meta/meta.dart';
 import 'package:chefbook/models/user.dart';
 import 'package:chefbook/models/recipe.dart';
 import 'package:chefbook/models/cookbook.dart';
+import 'package:chefbook/models/recipeUserFavourite.dart';
 
 abstract class Database {
   // User operations
@@ -20,6 +20,10 @@ abstract class Database {
 
   /// Update user avatar with [avatar]
   Future<void> updateUserAvatar({@required String avatar});
+
+  Future<void> addUserToFollowing({@required UserData userData});
+
+  Future<void> removeUserFromFollowing({@required String publicUID});
 
   // Recipe operations
   /// Create a [recipe]
