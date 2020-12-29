@@ -57,23 +57,43 @@ class CookbookPage extends HookWidget {
             },
           ),
         ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () async {
-            await showDialog(
-              context: context,
-              barrierDismissible: false,
-              builder: (context) => NewCookbookDialog(),
-            );
-          },
-          child: Icon(Icons.add),
-          backgroundColor:
-              Theme.of(context).floatingActionButtonTheme.backgroundColor,
-        ),
+        floatingActionButton: NewCookbookButton(),
       ),
       loading: () => Center(child: const CircularProgressIndicator()),
-      error: (error, stack) => Center(
-        child: Text('${error.toString()}'),
+      error: (error, stack) => Scaffold(
+        appBar: AppBar(
+          title: Text(
+            'My Cookbooks',
+            style: Theme.of(context).textTheme.headline5,
+          ),
+        ),
+        body: Center(
+          child: Text('${error.toString()}'),
+        ),
+        floatingActionButton: NewCookbookButton(),
       ),
+    );
+  }
+}
+
+class NewCookbookButton extends StatelessWidget {
+  const NewCookbookButton({
+    Key key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return FloatingActionButton(
+      onPressed: () async {
+        await showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => NewCookbookDialog(),
+        );
+      },
+      child: Icon(Icons.add),
+      backgroundColor:
+          Theme.of(context).floatingActionButtonTheme.backgroundColor,
     );
   }
 }

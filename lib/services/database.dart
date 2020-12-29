@@ -21,9 +21,9 @@ abstract class Database {
   /// Update user avatar with [avatar]
   Future<void> updateUserAvatar({@required String avatar});
 
-  Future<void> addUserToFollowing({@required UserData userData});
+  Future<void> followUser({@required UserData userData});
 
-  Future<void> removeUserFromFollowing({@required String publicUID});
+  Future<void> unfollowUser({@required String publicUID});
 
   // Recipe operations
   /// Create a [recipe]

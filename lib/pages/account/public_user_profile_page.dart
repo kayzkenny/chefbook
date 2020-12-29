@@ -1,8 +1,9 @@
-import 'package:chefbook/repository/firestore_repo.dart';
-import 'package:chefbook/shared/custom_flat_button.dart';
 import 'package:flutter/material.dart';
+import 'package:chefbook/models/user.dart';
+import 'package:chefbook/services/auth.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:chefbook/shared/custom_flat_button.dart';
 import 'package:chefbook/services/firestore_database.dart';
 
 class PublicUserProfilePage extends HookWidget {
@@ -12,8 +13,15 @@ class PublicUserProfilePage extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    final String publicUid = ModalRoute.of(context).settings.arguments;
-    final publicUserDataStream = useProvider(publicUserDataProvider(publicUid));
+    final String puid = ModalRoute.of(context).settings.arguments;
+    final publicUserDataStream = useProvider(publicUserDataProvider(puid));
+    final currentUser = useProvider(authProvider).currentUser();
+
+    Future<void> followUser(UserData userData) async =>
+        await context.read(databaseProvider).followUser(userData: userData);
+
+    Future<void> unfollowUser(String publicUID) async =>
+        await context.read(databaseProvider).unfollowUser(publicUID: publicUID);
 
     return publicUserDataStream.when(
       data: (publicUserData) => Scaffold(
@@ -89,10 +97,17 @@ class PublicUserProfilePage extends HookWidget {
                     trailing: Text('${publicUserData.followingCount}'),
                   ),
                   SizedBox(height: 40.0),
-                  CustomFlatButton(
-                    onPressed: () {},
-                    label: Text('Follow'),
-                  ),
+                  if (publicUserData.uid != currentUser.uid)
+                    CustomFlatButton(
+                      onPressed: () => followUser(publicUserData),
+                      label: Text('Follow'),
+                    ),
+                  SizedBox(height: 40.0),
+                  if (publicUserData.uid != currentUser.uid)
+                    CustomFlatButton(
+                      onPressed: () => unfollowUser(publicUserData.uid),
+                      label: Text('UnFollow'),
+                    ),
                 ],
               ),
             ),
