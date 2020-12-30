@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:chefbook/models/recipe.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:chefbook/services/firestore_database.dart';
+import 'package:chefbook/repository/firestore_repo.dart';
 
 class UserRecipeCard extends HookWidget {
   const UserRecipeCard({this.userRecipe, Key key}) : super(key: key);

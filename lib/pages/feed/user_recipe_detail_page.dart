@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:chefbook/models/recipe.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:chefbook/repository/firestore_repo.dart';
 import 'package:chefbook/services/firestore_database.dart';
 import 'package:chefbook/pages/recipes/recipe_stat_card.dart';
 import 'package:chefbook/pages/account/public_user_profile_page.dart';

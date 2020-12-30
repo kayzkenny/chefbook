@@ -1,5 +1,5 @@
 import 'package:meta/meta.dart';
-import 'package:rxdart/rxdart.dart';
+// import 'package:rxdart/rxdart.dart';
 import 'package:chefbook/models/user.dart';
 import 'package:chefbook/services/auth.dart';
 import 'package:chefbook/models/recipe.dart';
@@ -18,40 +18,40 @@ final databaseProvider = Provider<Database>(
 //   (ref) => ref.read(databaseProvider).userDataStream,
 // );
 
-final publicUserDataProvider = StreamProvider.family<UserData, String>(
-  (ref, uid) => ref.read(databaseProvider).getUserStreamById(uid: uid),
-);
+// final publicUserDataProvider = StreamProvider.family<UserData, String>(
+//   (ref, uid) => ref.read(databaseProvider).getUserStreamById(uid: uid),
+// );
 
-final userRecipeProvider = StreamProvider.family<Recipe, String>(
-  (ref, recipeId) => FirestoreDatabase(
-    uid: ref.watch(authProvider).currentUser().uid,
-  ).recipeStream(recipeId: recipeId),
-);
+// final userRecipeProvider = StreamProvider.family<Recipe, String>(
+//   (ref, recipeId) => FirestoreDatabase(
+//     uid: ref.watch(authProvider).currentUser().uid,
+//   ).recipeStream(recipeId: recipeId),
+// );
 
-final allFavouriteRecipesProvider = StreamProvider<List<RecipeUserFavourite>>(
-  (ref) => ref.read(databaseProvider).favouriteRecipesStream,
-);
+// final allFavouriteRecipesProvider = StreamProvider<List<RecipeUserFavourite>>(
+//   (ref) => ref.read(databaseProvider).favouriteRecipesStream,
+// );
 
-final favouriteRecipeProvider =
-    StreamProvider.family<RecipeUserFavourite, String>((ref, recipeId) {
-  final recipe = ref.watch(userRecipeProvider(recipeId).stream);
-  final favouritesList = ref.watch(allFavouriteRecipesProvider.stream);
+// final favouriteRecipeProvider =
+//     StreamProvider.family<RecipeUserFavourite, String>((ref, recipeId) {
+//   final recipe = ref.watch(userRecipeProvider(recipeId).stream);
+//   final favouritesList = ref.watch(allFavouriteRecipesProvider.stream);
 
-  return Rx.combineLatest2(
-    recipe,
-    favouritesList,
-    (Recipe recipe, List<RecipeUserFavourite> favouritesList) {
-      final userFav = favouritesList.firstWhere(
-        (fav) => fav.recipe.id == recipe.id,
-        orElse: () => null,
-      );
-      return RecipeUserFavourite(
-        recipe: recipe,
-        isFavourite: userFav?.isFavourite ?? false,
-      );
-    },
-  );
-});
+//   return Rx.combineLatest2(
+//     recipe,
+//     favouritesList,
+//     (Recipe recipe, List<RecipeUserFavourite> favouritesList) {
+//       final userFav = favouritesList.firstWhere(
+//         (fav) => fav.recipe.id == recipe.id,
+//         orElse: () => null,
+//       );
+//       return RecipeUserFavourite(
+//         recipe: recipe,
+//         isFavourite: userFav?.isFavourite ?? false,
+//       );
+//     },
+//   );
+// });
 
 class FirestoreDatabase implements Database {
   FirestoreDatabase({@required this.uid}) : assert(uid != null);

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:rxdart/rxdart.dart';
 import 'package:flutter/material.dart';
 import 'package:chefbook/models/user.dart';
 import 'package:chefbook/models/recipe.dart';
@@ -7,97 +8,111 @@ import 'package:chefbook/services/auth.dart';
 import 'package:chefbook/models/cookbook.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:chefbook/models/recipeUserFavourite.dart';
 
 final firestoreRepositoryProvider = Provider<FirestoreRepository>(
   (ref) => FirestoreRepository(uid: ref.watch(authProvider).currentUser().uid),
 );
 
-// removed autodispose becasue when the recipes page was closed and repopened
-// the page was loading forever
-final recipesProvider = StreamProvider.family<List<Recipe>, String>(
-  (ref, cookbookId) {
-    // ref.onDispose(() {
-    //   ref.read(firestoreRepositoryProvider).closeRecipesController();
-    // });
-    return ref
-        .read(firestoreRepositoryProvider)
-        .listenToRecipesRealTime(cookbookId: cookbookId);
-  },
-);
+final recipesProvider =
+    StreamProvider.family<List<Recipe>, String>((ref, cookbookId) {
+  // ref.onDispose(
+  //     () => ref.read(firestoreRepositoryProvider).closeRecipesController());
+  return ref
+      .read(firestoreRepositoryProvider)
+      .listenToRecipesRealTime(cookbookId: cookbookId);
+});
 
-final publicRecipesProvider = StreamProvider<List<Recipe>>(
-  (ref) {
-    // ref.onDispose(() {
-    //   ref.read(firestoreRepositoryProvider).closePublicRecipesController();
-    // });
-    return ref
-        .read(firestoreRepositoryProvider)
-        .listenToPublicRecipesRealTime();
-  },
-);
+final userRecipeProvider =
+    StreamProvider.autoDispose.family<Recipe, String>((ref, recipeId) {
+  ref.onDispose(
+      () => ref.read(firestoreRepositoryProvider).closeUserRecipeController());
+  return ref
+      .read(firestoreRepositoryProvider)
+      .listenToUserRecipeRealTime(recipeId: recipeId);
+});
 
-final cookbooksProvider = StreamProvider<List<Cookbook>>(
-  (ref) {
-    // ref.onDispose(() {
-    //   ref.read(firestoreRepositoryProvider).closeCookbooksController();
-    // });
-    return ref.read(firestoreRepositoryProvider).listenToCookbooksRealTime();
-  },
-);
+final allFavouriteRecipesProvider =
+    StreamProvider.autoDispose<List<RecipeUserFavourite>>((ref) {
+  ref.onDispose(() =>
+      ref.read(firestoreRepositoryProvider).closeAllFavouritesController());
+  return ref
+      .read(firestoreRepositoryProvider)
+      .listenToAllFavouriteRecipesRealTime();
+});
 
-final paginatedFavouriteRecipesProvider = StreamProvider<List<Recipe>>(
-  (ref) {
-    // ref.onDispose(() {
-    //   ref.read(firestoreRepositoryProvider).closeCookbooksController();
-    // });
-    return ref
-        .read(firestoreRepositoryProvider)
-        .listenToFavouriteRecipesRealTime();
-  },
-);
+final favouriteRecipeProvider = StreamProvider.autoDispose
+    .family<RecipeUserFavourite, String>((ref, recipeId) {
+  final recipe = ref.watch(userRecipeProvider(recipeId).stream);
+  final favouritesList = ref.watch(allFavouriteRecipesProvider.stream);
 
-final paginatedFollowingProvider = StreamProvider<List<UserData>>(
-  (ref) {
-    // ref.onDispose(() {
-    //   ref.read(firestoreRepositoryProvider).closeCookbooksController();
-    // });
-    return ref
-        .read(firestoreRepositoryProvider)
-        .listenToUserFollowingRealTime();
-  },
-);
+  ref.onDispose(() {
+    ref.read(firestoreRepositoryProvider).closeUserRecipeController();
+    ref.read(firestoreRepositoryProvider).closeAllFavouritesController();
+  });
 
-final paginatedFollowersProvider = StreamProvider<List<UserData>>(
-  (ref) {
-    // ref.onDispose(() {
-    //   ref.read(firestoreRepositoryProvider).closeCookbooksController();
-    // });
-    return ref
-        .read(firestoreRepositoryProvider)
-        .listenToUserFollowersRealTime();
-  },
-);
+  return Rx.combineLatest2(
+    recipe,
+    favouritesList,
+    (Recipe recipe, List<RecipeUserFavourite> favouritesList) {
+      final userFav = favouritesList.firstWhere(
+        (fav) => fav.recipe.id == recipe.id,
+        orElse: () => null,
+      );
+      return RecipeUserFavourite(
+        recipe: recipe,
+        isFavourite: userFav?.isFavourite ?? false,
+      );
+    },
+  );
+});
 
-final userDataProvider = StreamProvider.autoDispose<UserData>(
-  (ref) {
-    ref.onDispose(() {
-      ref.read(firestoreRepositoryProvider).closeUserDataController();
-    });
-    return ref.read(firestoreRepositoryProvider).listenToUserDataRealTime();
-  },
-);
+final publicRecipesProvider = StreamProvider<List<Recipe>>((ref) {
+  // ref.onDispose(() =>
+  //     ref.read(firestoreRepositoryProvider).closePublicRecipesController());
+  return ref.read(firestoreRepositoryProvider).listenToPublicRecipesRealTime();
+});
 
-// final publicUserDataProvider =
-//     StreamProvider.autoDispose.family<UserData, String>(
-//   (ref, uid) {
-//     ref.onDispose(() {
-//       ref.read(firestoreRepositoryProvider).closePublicUserDataController();
-//     });
-//     return ref
-//         .read(firestoreRepositoryProvider)
-//         .listenToPublicUserDataRealTime(uid);
-//   },
-// );
+final cookbooksProvider = StreamProvider<List<Cookbook>>((ref) {
+  // ref.onDispose(
+  //     () => ref.read(firestoreRepositoryProvider).closeCookbooksController());
+  return ref.read(firestoreRepositoryProvider).listenToCookbooksRealTime();
+});
+
+final paginatedFavouriteRecipesProvider = StreamProvider<List<Recipe>>((ref) {
+  // ref.onDispose(
+  //     () => ref.read(firestoreRepositoryProvider).closeFavouritesController());
+  return ref
+      .read(firestoreRepositoryProvider)
+      .listenToFavouriteRecipesRealTime();
+});
+
+final paginatedFollowingProvider = StreamProvider<List<UserData>>((ref) {
+  // ref.onDispose(() =>
+  //     ref.read(firestoreRepositoryProvider).closeUserFollowingController());
+  return ref.read(firestoreRepositoryProvider).listenToUserFollowingRealTime();
+});
+
+final paginatedFollowersProvider = StreamProvider<List<UserData>>((ref) {
+  // ref.onDispose(() =>
+  //     ref.read(firestoreRepositoryProvider).closeUserFollowersController());
+  return ref.read(firestoreRepositoryProvider).listenToUserFollowersRealTime();
+});
+
+final userDataProvider = StreamProvider<UserData>((ref) {
+  // ref.onDispose(
+  //     () => ref.read(firestoreRepositoryProvider).closeUserDataController());
+  return ref.read(firestoreRepositoryProvider).listenToUserDataRealTime();
+});
+
+final publicUserDataProvider =
+    StreamProvider.family<UserData, String>((ref, uid) {
+  // ref.onDispose(() =>
+  //     ref.read(firestoreRepositoryProvider).closePublicUserDataController());
+  return ref
+      .read(firestoreRepositoryProvider)
+      .listenToPublicUserDataRealTime(uid);
+});
 
 class FirestoreRepository {
   FirestoreRepository({@required this.uid}) : assert(uid != null);
@@ -107,6 +122,7 @@ class FirestoreRepository {
       FirebaseFirestore.instance.collection('recipes');
   final _cookbookCollectionReference =
       FirebaseFirestore.instance.collection('cookbooks');
+  final _userRecipeController = StreamController<Recipe>.broadcast();
   final _userDataController = StreamController<UserData>.broadcast();
   final _recipesController = StreamController<List<Recipe>>.broadcast();
   final _favouritesController = StreamController<List<Recipe>>.broadcast();
@@ -115,6 +131,8 @@ class FirestoreRepository {
   final _publicRecipesController = StreamController<List<Recipe>>.broadcast();
   final _userFollowingController = StreamController<List<UserData>>.broadcast();
   final _userFollowersController = StreamController<List<UserData>>.broadcast();
+  final _allFavouritesController =
+      StreamController<List<RecipeUserFavourite>>.broadcast();
   final _allPagedRecipes = List<List<Recipe>>();
   final _allPagedFavourites = List<List<Recipe>>();
   final _allPagedCookbooks = List<List<Cookbook>>();
@@ -157,6 +175,11 @@ class FirestoreRepository {
     return _favouritesController.stream;
   }
 
+  Stream<List<RecipeUserFavourite>> listenToAllFavouriteRecipesRealTime() {
+    _requestAllFavourites();
+    return _allFavouritesController.stream;
+  }
+
   Stream<UserData> listenToUserDataRealTime() {
     _requestUserData();
     return _userDataController.stream;
@@ -177,6 +200,11 @@ class FirestoreRepository {
     return _cookbooksController.stream;
   }
 
+  Stream<Recipe> listenToUserRecipeRealTime({@required String recipeId}) {
+    _requestUserRecipe(recipeId);
+    return _userRecipeController.stream;
+  }
+
   Future<void> _requestUserData() async {
     final _userDataSnaphot =
         await FirebaseFirestore.instance.collection('users').doc(uid).get();
@@ -187,6 +215,40 @@ class FirestoreRepository {
     );
 
     _userDataController.add(userData);
+  }
+
+  Future<void> _requestAllFavourites() async {
+    final _userRecipesSnaphots = FirebaseFirestore.instance
+        .collection('users')
+        .doc(uid)
+        .collection('favourites')
+        .snapshots();
+
+    _userRecipesSnaphots.listen((snapshot) {
+      // if (snapshot.docs.isNotEmpty) {
+      List<RecipeUserFavourite> recipeFavourites = snapshot.docs
+          .map((snapshot) =>
+              RecipeUserFavourite.fromMap(snapshot.data(), snapshot.id))
+          .toList();
+      _allFavouritesController.add(recipeFavourites);
+      // } else {
+      //     _recipesController.addError('No Recipe Favourites Available');
+      // }
+    });
+  }
+
+  Future<void> _requestUserRecipe(String recipeId) async {
+    final _recipeSnaphot = await FirebaseFirestore.instance
+        .collection('recipes')
+        .doc(recipeId)
+        .get();
+
+    final recipe = Recipe.fromMap(
+      _recipeSnaphot.data(),
+      _recipeSnaphot.id,
+    );
+
+    _userRecipeController.add(recipe);
   }
 
   Future<void> _requestPublicUserData(String uid) async {
@@ -495,8 +557,6 @@ class FirestoreRepository {
   void requestMoreRecipes({@required String cookbookId}) =>
       _requestRecipes(cookbookId: cookbookId);
 
-  void requestMorePublicRecipes() => _requestPublicRecipes();
-
   void requestMoreCookbooks() => _requestCookbooks();
 
   void requestMoreFavourites() => _requestFavourites();
@@ -505,13 +565,25 @@ class FirestoreRepository {
 
   void requestMoreFollowers() => _requestUserFollowers();
 
-  // void closeRecipesController() => _recipesController.close();
+  void requestMorePublicRecipes() => _requestPublicRecipes();
 
-  // void closePublicRecipesController() => _publicRecipesController.close();
-
-  // void closeCookbooksController() => _cookbooksController.close();
+  void closeRecipesController() => _recipesController.done;
 
   void closeUserDataController() => _userDataController.done;
 
-  // void closePublicUserDataController() => _publicUserDataController.done;
+  void closeCookbooksController() => _cookbooksController.done;
+
+  void closeUserRecipeController() => _userRecipeController.done;
+
+  void closeFavouritesController() => _favouritesController.done;
+
+  void closePublicRecipesController() => _publicRecipesController.done;
+
+  void closeAllFavouritesController() => _allFavouritesController.done;
+
+  void closeUserFollowingController() => _userFollowingController.done;
+
+  void closeUserFollowersController() => _userFollowersController.done;
+
+  void closePublicUserDataController() => _publicUserDataController.onPause;
 }
