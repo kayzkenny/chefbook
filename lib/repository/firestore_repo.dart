@@ -126,7 +126,7 @@ class FirestoreRepository {
   final _userDataController = StreamController<UserData>.broadcast();
   final _recipesController = StreamController<List<Recipe>>.broadcast();
   final _favouritesController = StreamController<List<Recipe>>.broadcast();
-  final _publicUserDataController = StreamController<UserData>.broadcast();
+  // final _publicUserDataController = StreamController<UserData>.broadcast();
   final _cookbooksController = StreamController<List<Cookbook>>.broadcast();
   final _publicRecipesController = StreamController<List<Recipe>>.broadcast();
   final _userFollowingController = StreamController<List<UserData>>.broadcast();
@@ -185,9 +185,20 @@ class FirestoreRepository {
     return _userDataController.stream;
   }
 
-  Stream<UserData> listenToPublicUserDataRealTime(String uid) {
-    _requestPublicUserData(uid);
-    return _publicUserDataController.stream;
+  Stream<UserData> listenToPublicUserDataRealTime(String publicUid) {
+    // _requestPublicUserData(publicUid);
+    // return _publicUserDataController.stream;
+    final _userDataSnaphot = FirebaseFirestore.instance
+        .collection('users')
+        .doc(publicUid)
+        .snapshots();
+
+    return _userDataSnaphot.map(
+      (snapshot) => UserData.fromMap(
+        snapshot.data(),
+        snapshot.id,
+      ),
+    );
   }
 
   Stream<List<Recipe>> listenToPublicRecipesRealTime() {
@@ -251,23 +262,25 @@ class FirestoreRepository {
     _userRecipeController.add(recipe);
   }
 
-  Future<void> _requestPublicUserData(String uid) async {
-    final _userDataSnaphot =
-        await FirebaseFirestore.instance.collection('users').doc(uid).get();
+  // Future<void> _requestPublicUserData(String publicUid) async {
+  //   final _userDataSnaphot = await FirebaseFirestore.instance
+  //       .collection('users')
+  //       .doc(publicUid)
+  //       .get();
 
-    final userData = UserData.fromMap(
-      _userDataSnaphot.data(),
-      _userDataSnaphot.id,
-    );
+  //   final userData = UserData.fromMap(
+  //     _userDataSnaphot.data(),
+  //     _userDataSnaphot.id,
+  //   );
 
-    _publicUserDataController.add(userData);
-  }
+  //   _publicUserDataController.add(userData);
+  // }
 
   void _requestUserFollowing() {
     Query pageUserFollowingQuery = FirebaseFirestore.instance
-        .collection('users')
-        .doc(uid)
         .collection('following')
+        .doc(uid)
+        .collection('users')
         .orderBy('firstName', descending: true)
         .limit(pageLimit);
 
@@ -315,9 +328,9 @@ class FirestoreRepository {
 
   void _requestUserFollowers() {
     Query pageUserFollowersQuery = FirebaseFirestore.instance
-        .collection('users')
-        .doc(uid)
         .collection('followers')
+        .doc(uid)
+        .collection('users')
         .orderBy('firstName', descending: true)
         .limit(pageLimit);
 
@@ -585,5 +598,5 @@ class FirestoreRepository {
 
   void closeUserFollowersController() => _userFollowersController.done;
 
-  void closePublicUserDataController() => _publicUserDataController.onPause;
+  // void closePublicUserDataController() => _publicUserDataController.done;
 }

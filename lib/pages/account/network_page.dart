@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:chefbook/repository/firestore_repo.dart';
+import 'package:chefbook/pages/account/public_user_card.dart';
 
 class NetworkPage extends HookWidget {
   const NetworkPage({Key key}) : super(key: key);
@@ -16,6 +17,8 @@ class NetworkPage extends HookWidget {
     final followingScrollController = useScrollController();
     final followersScrollController = useScrollController();
     final tabController = useTabController(initialLength: 2);
+    final followingStream = useProvider(paginatedFollowingProvider);
+    final followersStream = useProvider(paginatedFollowersProvider);
 
     tabController.addListener(() => tabIndex.value = tabController.index);
 
@@ -82,33 +85,42 @@ class NetworkPage extends HookWidget {
                 ? Center(
                     child: Text('You are not following anyone'),
                   )
-                : ListView.separated(
-                    padding: EdgeInsets.all(32.0),
-                    itemCount: userData.followingCount,
-                    controller: followingScrollController,
-                    separatorBuilder: (context, index) => Divider(),
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    itemBuilder: (BuildContext context, int index) {
-                      // final userFollowing = following[index];
-                      // return PublicUserCard(publicUserData: userFollowing);
-                      return Text('$index');
-                    },
+                : followingStream.when(
+                    data: (following) => ListView.separated(
+                      padding: EdgeInsets.all(32.0),
+                      itemCount: following.length,
+                      controller: followingScrollController,
+                      separatorBuilder: (context, index) => Divider(),
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      itemBuilder: (BuildContext context, int index) =>
+                          PublicUserCard(publicUserData: userData),
+                    ),
+                    loading: () => Center(
+                      child: const CircularProgressIndicator(),
+                    ),
+                    error: (error, stack) =>
+                        Center(child: Text('${error.toString()}')),
                   ),
             userData.followerCount == 0
                 ? Center(
                     child: Text('You have no followers'),
                   )
-                : ListView.separated(
-                    padding: EdgeInsets.all(32.0),
-                    itemCount: userData.followingCount,
-                    controller: followersScrollController,
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    separatorBuilder: (context, index) => Divider(),
-                    itemBuilder: (BuildContext context, int index) {
-                      // final userFollower = followers[index];
-                      // return PublicUserCard(publicUserData: userFollower);
-                      return Text('$index');
-                    },
+                : followersStream.when(
+                    data: (followers) => ListView.separated(
+                      padding: const EdgeInsets.all(32.0),
+                      itemCount: followers.length,
+                      controller: followersScrollController,
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      separatorBuilder: (context, index) => Divider(),
+                      itemBuilder: (BuildContext context, int index) {
+                        return PublicUserCard(publicUserData: userData);
+                      },
+                    ),
+                    loading: () => Center(
+                      child: const CircularProgressIndicator(),
+                    ),
+                    error: (error, stack) =>
+                        Center(child: Text('${error.toString()}')),
                   ),
           ],
         ),

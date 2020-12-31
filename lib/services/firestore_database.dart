@@ -120,7 +120,7 @@ class FirestoreDatabase implements Database {
   @override
   Future<void> followUser({@required UserData userData}) async {
     _service.setData(
-      path: FirestorePath.userFollowing(uid, userData.uid),
+      path: FirestorePath.followers(uid, userData.uid),
       data: userData.toNetwork(uid),
     );
   }
@@ -128,7 +128,7 @@ class FirestoreDatabase implements Database {
   @override
   Future<void> unfollowUser({@required String publicUID}) async {
     _service.deleteData(
-      path: FirestorePath.userFollowing(uid, publicUID),
+      path: FirestorePath.followers(uid, publicUID),
     );
   }
 
