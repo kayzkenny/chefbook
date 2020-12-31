@@ -28,16 +28,16 @@ class CookbookPage extends HookWidget {
       return () => scrollController.removeListener(() {});
     }, [scrollController]);
 
-    return cookbookStream.when(
-      data: (cookbookList) => Scaffold(
-        appBar: AppBar(
-          title: Text(
-            'My Cookbooks',
-            style: Theme.of(context).textTheme.headline5,
-          ),
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          'My Cookbooks',
+          style: Theme.of(context).textTheme.headline5,
         ),
-        body: SafeArea(
-          child: ListView.builder(
+      ),
+      body: SafeArea(
+        child: cookbookStream.when(
+          data: (cookbookList) => ListView.builder(
             controller: scrollController,
             padding: EdgeInsets.all(20.0),
             itemCount: cookbookList.length,
@@ -56,44 +56,22 @@ class CookbookPage extends HookWidget {
               );
             },
           ),
+          loading: () => Center(child: const CircularProgressIndicator()),
+          error: (error, stack) => Text('${error.toString()}'),
         ),
-        floatingActionButton: NewCookbookButton(),
       ),
-      loading: () => Center(child: const CircularProgressIndicator()),
-      error: (error, stack) => Scaffold(
-        appBar: AppBar(
-          title: Text(
-            'My Cookbooks',
-            style: Theme.of(context).textTheme.headline5,
-          ),
-        ),
-        body: Center(
-          child: Text('${error.toString()}'),
-        ),
-        floatingActionButton: NewCookbookButton(),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          await showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) => NewCookbookDialog(),
+          );
+        },
+        child: Icon(Icons.add),
+        backgroundColor:
+            Theme.of(context).floatingActionButtonTheme.backgroundColor,
       ),
-    );
-  }
-}
-
-class NewCookbookButton extends StatelessWidget {
-  const NewCookbookButton({
-    Key key,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return FloatingActionButton(
-      onPressed: () async {
-        await showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (context) => NewCookbookDialog(),
-        );
-      },
-      child: Icon(Icons.add),
-      backgroundColor:
-          Theme.of(context).floatingActionButtonTheme.backgroundColor,
     );
   }
 }

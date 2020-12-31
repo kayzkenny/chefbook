@@ -28,16 +28,16 @@ class FavouritesPage extends HookWidget {
       return () => scrollController.removeListener(() {});
     }, [scrollController]);
 
-    return favouriteRecipesStream.when(
-      data: (favouriteRecipeList) => Scaffold(
-        appBar: AppBar(
-          title: Text(
-            'Favourite Recipes',
-            style: Theme.of(context).textTheme.headline5,
-          ),
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          'Favourite Recipes',
+          style: Theme.of(context).textTheme.headline5,
         ),
-        body: SafeArea(
-          child: ListView.builder(
+      ),
+      body: SafeArea(
+        child: favouriteRecipesStream.when(
+          data: (favouriteRecipeList) => ListView.builder(
             controller: scrollController,
             padding: EdgeInsets.all(20.0),
             itemCount: favouriteRecipeList.length,
@@ -56,10 +56,10 @@ class FavouritesPage extends HookWidget {
               );
             },
           ),
+          loading: () => Center(child: const CircularProgressIndicator()),
+          error: (error, stack) => Center(child: Text('${error.toString()}')),
         ),
       ),
-      loading: () => Center(child: const CircularProgressIndicator()),
-      error: (error, stack) => Center(child: Text('${error.toString()}')),
     );
   }
 }

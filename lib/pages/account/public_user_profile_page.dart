@@ -24,13 +24,13 @@ class PublicUserProfilePage extends HookWidget {
     Future<void> unfollowUser(String publicUID) async =>
         await context.read(databaseProvider).unfollowUser(publicUID: publicUID);
 
-    return publicUserDataStream.when(
-      data: (publicUserData) => Scaffold(
-        body: SafeArea(
-          child: SingleChildScrollView(
-            child: Container(
-              padding: EdgeInsets.all(32.0),
-              child: Column(
+    return Scaffold(
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Container(
+            padding: EdgeInsets.all(32.0),
+            child: publicUserDataStream.when(
+              data: (publicUserData) => Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Center(
@@ -111,12 +111,12 @@ class PublicUserProfilePage extends HookWidget {
                     ),
                 ],
               ),
+              loading: () => Center(child: const CircularProgressIndicator()),
+              error: (error, stack) => const Text('Oops'),
             ),
           ),
         ),
       ),
-      loading: () => Center(child: const CircularProgressIndicator()),
-      error: (error, stack) => const Text('Oops'),
     );
   }
 }

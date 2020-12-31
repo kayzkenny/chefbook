@@ -50,16 +50,16 @@ class RecipesPage extends HookWidget {
       return () => scrollController.removeListener(() {});
     }, [scrollController]);
 
-    return recipesStream.when(
-      data: (recipeList) => Scaffold(
-        appBar: AppBar(
-          title: Text(
-            'My Recipes',
-            style: Theme.of(context).textTheme.headline5,
-          ),
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          'My Recipes',
+          style: Theme.of(context).textTheme.headline5,
         ),
-        body: SafeArea(
-          child: ListView.builder(
+      ),
+      body: SafeArea(
+        child: recipesStream.when(
+          data: (recipeList) => ListView.builder(
             itemCount: recipeList.length,
             controller: scrollController,
             padding: EdgeInsets.all(20.0),
@@ -78,31 +78,15 @@ class RecipesPage extends HookWidget {
               );
             },
           ),
-        ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: showRecipeForm,
-          child: Icon(FeatherIcons.plus),
-          backgroundColor:
-              Theme.of(context).floatingActionButtonTheme.backgroundColor,
+          loading: () => Center(child: const CircularProgressIndicator()),
+          error: (error, stack) => Center(child: Text('${error.toString()}')),
         ),
       ),
-      loading: () => Center(child: const CircularProgressIndicator()),
-      error: (error, stack) => Scaffold(
-        appBar: AppBar(
-          title: Text(
-            'My Recipes',
-            style: Theme.of(context).textTheme.headline5,
-          ),
-        ),
-        body: Center(
-          child: Text('${error.toString()}'),
-        ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: showRecipeForm,
-          child: Icon(FeatherIcons.plus),
-          backgroundColor:
-              Theme.of(context).floatingActionButtonTheme.backgroundColor,
-        ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: showRecipeForm,
+        child: Icon(FeatherIcons.plus),
+        backgroundColor:
+            Theme.of(context).floatingActionButtonTheme.backgroundColor,
       ),
     );
   }

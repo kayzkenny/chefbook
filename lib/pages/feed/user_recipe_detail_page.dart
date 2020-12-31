@@ -52,77 +52,77 @@ class UserRecipeDetail extends HookWidget {
             .read(databaseProvider)
             .removeRecipeFromFavourites(recipeId: recipeId);
 
-    return publicUserDataStream.when(
-      data: (publicUserData) => Scaffold(
-        body: Stack(
-          alignment: AlignmentDirectional.bottomCenter,
-          children: [
-            CustomScrollView(
-              slivers: <Widget>[
-                SliverAppBar(
-                  expandedHeight: 250.0,
-                  flexibleSpace: FlexibleSpaceBar(
-                    // title: Text(userRecipe.name),
-                    background: Hero(
-                      tag: userRecipe.id,
-                      child: userRecipe.imageURL == null
-                          ? Image.asset(
-                              'images/logo.jpg',
-                              fit: BoxFit.fitWidth,
-                            )
-                          : Image.network(
-                              userRecipe.imageURL,
-                              fit: BoxFit.fitWidth,
-                            ),
-                    ),
+    return Scaffold(
+      body: Stack(
+        alignment: AlignmentDirectional.bottomCenter,
+        children: [
+          CustomScrollView(
+            slivers: <Widget>[
+              SliverAppBar(
+                expandedHeight: 250.0,
+                flexibleSpace: FlexibleSpaceBar(
+                  // title: Text(userRecipe.name),
+                  background: Hero(
+                    tag: userRecipe.id,
+                    child: userRecipe.imageURL == null
+                        ? Image.asset(
+                            'images/logo.jpg',
+                            fit: BoxFit.fitWidth,
+                          )
+                        : Image.network(
+                            userRecipe.imageURL,
+                            fit: BoxFit.fitWidth,
+                          ),
                   ),
                 ),
-                SliverPadding(
-                  padding: const EdgeInsets.all(32.0),
-                  sliver: SliverList(
-                    delegate: SliverChildListDelegate(
-                      <Widget>[
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                userRecipe.name,
-                                style: Theme.of(context).textTheme.headline6,
-                              ),
-                            ),
-                            isFavourite
-                                ? IconButton(
-                                    icon: Icon(
-                                      Icons.favorite_border,
-                                      color: Colors.red,
-                                    ),
-                                    onPressed: () => removeRecipeFromFavourites(
-                                      userRecipe.id,
-                                    ),
-                                  )
-                                : IconButton(
-                                    icon: Icon(
-                                      Icons.favorite,
-                                      color: Colors.red,
-                                    ),
-                                    onPressed: () =>
-                                        addRecipeToFavourites(userRecipe),
-                                  ),
-                            Text(
-                              '${userRecipe.favouritesCount}',
+              ),
+              SliverPadding(
+                padding: const EdgeInsets.all(32.0),
+                sliver: SliverList(
+                  delegate: SliverChildListDelegate(
+                    <Widget>[
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              userRecipe.name,
                               style: Theme.of(context).textTheme.headline6,
                             ),
-                            IconButton(
-                              icon: Icon(
-                                Icons.share,
-                                color: Colors.green,
-                              ),
-                              onPressed: () {},
+                          ),
+                          isFavourite
+                              ? IconButton(
+                                  icon: Icon(
+                                    Icons.favorite_border,
+                                    color: Colors.red,
+                                  ),
+                                  onPressed: () => removeRecipeFromFavourites(
+                                    userRecipe.id,
+                                  ),
+                                )
+                              : IconButton(
+                                  icon: Icon(
+                                    Icons.favorite,
+                                    color: Colors.red,
+                                  ),
+                                  onPressed: () =>
+                                      addRecipeToFavourites(userRecipe),
+                                ),
+                          Text(
+                            '${userRecipe.favouritesCount}',
+                            style: Theme.of(context).textTheme.headline6,
+                          ),
+                          IconButton(
+                            icon: Icon(
+                              Icons.share,
+                              color: Colors.green,
                             ),
-                          ],
-                        ),
-                        SizedBox(height: 16.0),
-                        GestureDetector(
+                            onPressed: () {},
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 16.0),
+                      publicUserDataStream.when(
+                        data: (publicUserData) => GestureDetector(
                           onTap: () => Navigator.pushNamed(
                             context,
                             PublicUserProfilePage.routeName,
@@ -146,143 +146,144 @@ class UserRecipeDetail extends HookWidget {
                             ],
                           ),
                         ),
-                        SizedBox(height: 16.0),
-                        Container(
-                          height: 100.0,
-                          margin: EdgeInsets.all(20.0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              RecipeStat(
-                                label: 'Serves ${userRecipe.serves}',
-                                icon: Icons.kitchen,
-                              ),
-                              VerticalDivider(),
-                              RecipeStat(
-                                label: '${userRecipe.duration} minutes',
-                                icon: Icons.timer,
-                              ),
-                              VerticalDivider(),
-                              RecipeStat(
-                                label: '${userRecipe.caloriesPerServing} cal',
-                                icon: Icons.whatshot,
-                              ),
-                            ],
+                        loading: () =>
+                            Center(child: const CircularProgressIndicator()),
+                        error: (error, stack) => const Text('Oops'),
+                      ),
+                      SizedBox(height: 16.0),
+                      Container(
+                        height: 100.0,
+                        margin: EdgeInsets.all(20.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            RecipeStat(
+                              label: 'Serves ${userRecipe.serves}',
+                              icon: Icons.kitchen,
+                            ),
+                            VerticalDivider(),
+                            RecipeStat(
+                              label: '${userRecipe.duration} minutes',
+                              icon: Icons.timer,
+                            ),
+                            VerticalDivider(),
+                            RecipeStat(
+                              label: '${userRecipe.caloriesPerServing} cal',
+                              icon: Icons.whatshot,
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(height: 16.0),
+                      Text(
+                        'Tags',
+                        style: Theme.of(context).textTheme.subtitle1,
+                      ),
+                      SizedBox(height: 16.0),
+                      if (userRecipe.tags.isNotEmpty)
+                        Wrap(
+                          spacing: 8.0,
+                          runSpacing: 4.0,
+                          direction: Axis.horizontal,
+                          children: List.generate(
+                            userRecipe.tags.length,
+                            (index) {
+                              final tag = userRecipe.tags[index];
+                              return userRecipe.tags.length == 0
+                                  ? Center(child: Text('No Tags to Show'))
+                                  : Chip(label: Text(tag));
+                            },
                           ),
                         ),
-                        SizedBox(height: 16.0),
-                        Text(
-                          'Tags',
-                          style: Theme.of(context).textTheme.subtitle1,
-                        ),
-                        SizedBox(height: 16.0),
-                        if (userRecipe.tags.isNotEmpty)
-                          Wrap(
-                            spacing: 8.0,
-                            runSpacing: 4.0,
-                            direction: Axis.horizontal,
-                            children: List.generate(
-                              userRecipe.tags.length,
-                              (index) {
-                                final tag = userRecipe.tags[index];
-                                return userRecipe.tags.length == 0
-                                    ? Center(child: Text('No Tags to Show'))
-                                    : Chip(label: Text(tag));
-                              },
+                      SizedBox(height: 16.0),
+                      Text(
+                        'Ingredients',
+                        style: Theme.of(context).textTheme.subtitle1,
+                      ),
+                      SizedBox(height: 16.0),
+                      if (userRecipe.ingredients.isNotEmpty)
+                        ListView.separated(
+                          shrinkWrap: true,
+                          physics: NeverScrollableScrollPhysics(),
+                          itemCount: userRecipe.ingredients.length,
+                          separatorBuilder: (context, index) => Divider(),
+                          itemBuilder: (BuildContext context, int index) =>
+                              ListTile(
+                            title: Text(
+                              userRecipe.ingredients[index],
                             ),
                           ),
-                        SizedBox(height: 16.0),
-                        Text(
-                          'Ingredients',
-                          style: Theme.of(context).textTheme.subtitle1,
                         ),
-                        SizedBox(height: 16.0),
-                        if (userRecipe.ingredients.isNotEmpty)
-                          ListView.separated(
-                            shrinkWrap: true,
-                            physics: NeverScrollableScrollPhysics(),
-                            itemCount: userRecipe.ingredients.length,
-                            separatorBuilder: (context, index) => Divider(),
-                            itemBuilder: (BuildContext context, int index) =>
-                                ListTile(
-                              title: Text(
-                                userRecipe.ingredients[index],
-                              ),
+                      SizedBox(height: 16.0),
+                      Text(
+                        'Steps',
+                        style: Theme.of(context).textTheme.subtitle1,
+                      ),
+                      SizedBox(height: 16.0),
+                      if (userRecipe.steps.isNotEmpty)
+                        ListView.separated(
+                          shrinkWrap: true,
+                          physics: NeverScrollableScrollPhysics(),
+                          itemCount: userRecipe.steps.length,
+                          separatorBuilder: (context, index) => Divider(
+                            indent: 40.0,
+                          ),
+                          itemBuilder: (BuildContext context, int index) =>
+                              ListTile(
+                            leading: Text(
+                              '${index + 1}',
+                              style: Theme.of(context).textTheme.subtitle2,
+                            ),
+                            title: Text(
+                              userRecipe.steps[index],
                             ),
                           ),
-                        SizedBox(height: 16.0),
-                        Text(
-                          'Steps',
-                          style: Theme.of(context).textTheme.subtitle1,
                         ),
-                        SizedBox(height: 16.0),
-                        if (userRecipe.steps.isNotEmpty)
-                          ListView.separated(
-                            shrinkWrap: true,
-                            physics: NeverScrollableScrollPhysics(),
-                            itemCount: userRecipe.steps.length,
-                            separatorBuilder: (context, index) => Divider(
-                              indent: 40.0,
-                            ),
-                            itemBuilder: (BuildContext context, int index) =>
-                                ListTile(
-                              leading: Text(
-                                '${index + 1}',
-                                style: Theme.of(context).textTheme.subtitle2,
-                              ),
-                              title: Text(
-                                userRecipe.steps[index],
-                              ),
-                            ),
-                          ),
-                        SizedBox(height: 60.0),
-                      ],
-                    ),
+                      SizedBox(height: 60.0),
+                    ],
                   ),
-                ),
-              ],
-            ),
-            Positioned(
-              child: Container(
-                height: 60.0,
-                padding: EdgeInsets.all(16.0),
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).backgroundColor,
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(15),
-                    topRight: Radius.circular(15),
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black26,
-                      blurRadius: 15.0,
-                      spreadRadius: 0.5,
-                      offset: Offset(0.7, 0.7),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      '${userRecipe.reviewCount} Reviews',
-                      style: Theme.of(context).textTheme.bodyText1,
-                    ),
-                    Text(
-                      'Stars',
-                      style: Theme.of(context).textTheme.bodyText1,
-                    )
-                  ],
                 ),
               ),
+            ],
+          ),
+          Positioned(
+            child: Container(
+              height: 60.0,
+              padding: EdgeInsets.all(16.0),
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: Theme.of(context).backgroundColor,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(15),
+                  topRight: Radius.circular(15),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black26,
+                    blurRadius: 15.0,
+                    spreadRadius: 0.5,
+                    offset: Offset(0.7, 0.7),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    '${userRecipe.reviewCount} Reviews',
+                    style: Theme.of(context).textTheme.bodyText1,
+                  ),
+                  Text(
+                    'Stars',
+                    style: Theme.of(context).textTheme.bodyText1,
+                  )
+                ],
+              ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
-      loading: () => Center(child: const CircularProgressIndicator()),
-      error: (error, stack) => const Text('Oops'),
     );
   }
 }

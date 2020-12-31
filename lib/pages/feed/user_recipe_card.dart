@@ -16,46 +16,46 @@ class UserRecipeCard extends HookWidget {
     final userDataStream =
         useProvider(publicUserDataProvider(userRecipe.createdBy));
 
-    return userDataStream.when(
-      data: (userData) => Container(
-        height: 110,
-        margin: EdgeInsets.only(bottom: 20.0),
-        child: Row(
-          children: [
-            Hero(
-              tag: userRecipe.id,
-              child: ClipRRect(
-                borderRadius: BorderRadius.all(
-                  Radius.circular(10.0),
-                ),
-                child: userRecipe.imageURL == null
-                    ? Image.asset(
-                        'images/logo.jpg',
-                        height: 100.0,
-                        width: 100.0,
-                        fit: BoxFit.fill,
-                      )
-                    : Image.network(
-                        userRecipe.imageURL,
-                        height: 100.0,
-                        width: 100.0,
-                        fit: BoxFit.cover,
-                      ),
+    return Container(
+      height: 110,
+      margin: EdgeInsets.only(bottom: 20.0),
+      child: Row(
+        children: [
+          Hero(
+            tag: userRecipe.id,
+            child: ClipRRect(
+              borderRadius: BorderRadius.all(
+                Radius.circular(10.0),
               ),
-            ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text(
-                      userRecipe.name,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.subtitle1,
+              child: userRecipe.imageURL == null
+                  ? Image.asset(
+                      'images/logo.jpg',
+                      height: 100.0,
+                      width: 100.0,
+                      fit: BoxFit.fill,
+                    )
+                  : Image.network(
+                      userRecipe.imageURL,
+                      height: 100.0,
+                      width: 100.0,
+                      fit: BoxFit.cover,
                     ),
-                    Row(
+            ),
+          ),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    userRecipe.name,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.subtitle1,
+                  ),
+                  userDataStream.when(
+                    data: (userData) => Row(
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
                         CircleAvatar(
@@ -86,15 +86,19 @@ class UserRecipeCard extends HookWidget {
                         ),
                       ],
                     ),
-                  ],
-                ),
+                    loading: () => Center(
+                      child: const CircularProgressIndicator(),
+                    ),
+                    error: (error, stack) => Center(
+                      child: Text('${error.toString()}'),
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
-      loading: () => Center(child: const CircularProgressIndicator()),
-      error: (error, stack) => Center(child: Text('${error.toString()}')),
     );
   }
 }

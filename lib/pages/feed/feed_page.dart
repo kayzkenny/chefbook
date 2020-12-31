@@ -28,24 +28,22 @@ class FeedPage extends HookWidget {
       return () => scrollController.removeListener(() {});
     }, [scrollController]);
 
-    return puiblicRecipesStream.when(
-      data: (publicRecipeList) => Scaffold(
-        appBar: AppBar(
-          title: Text(
-            'Recipes',
-            style: Theme.of(context).textTheme.headline5,
-          ),
-          actions: [
-            IconButton(
-              icon: Icon(Icons.search),
-              onPressed: () {
-                Navigator.pushNamed(context, SearchPage.routeName);
-              },
-            )
-          ],
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          'Recipes',
+          style: Theme.of(context).textTheme.headline5,
         ),
-        body: SafeArea(
-          child: ListView.builder(
+        actions: [
+          IconButton(
+            icon: Icon(Icons.search),
+            onPressed: () => Navigator.pushNamed(context, SearchPage.routeName),
+          )
+        ],
+      ),
+      body: SafeArea(
+        child: puiblicRecipesStream.when(
+          data: (publicRecipeList) => ListView.builder(
             controller: scrollController,
             padding: EdgeInsets.all(20.0),
             itemCount: publicRecipeList.length,
@@ -64,11 +62,11 @@ class FeedPage extends HookWidget {
               );
             },
           ),
+          loading: () => Center(child: const CircularProgressIndicator()),
+          error: (error, stack) => Center(
+            child: Text('${error.toString()}'),
+          ),
         ),
-      ),
-      loading: () => Center(child: const CircularProgressIndicator()),
-      error: (error, stack) => Center(
-        child: Text('${error.toString()}'),
       ),
     );
   }
