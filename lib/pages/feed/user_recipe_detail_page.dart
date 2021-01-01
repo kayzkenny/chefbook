@@ -21,7 +21,7 @@ class UserRecipeDetailPage extends HookWidget {
         userRecipe: userRecipe.recipe,
         isFavourite: userRecipe.isFavourite,
       ),
-      loading: () => Center(child: Text('userRecipestream is loading')),
+      loading: () => Center(child: const CircularProgressIndicator()),
       error: (error, stack) => const Text('Oops'),
     );
   }

@@ -5,170 +5,48 @@ const increment = admin.firestore.FieldValue.increment(1);
 const decrement = admin.firestore.FieldValue.increment(-1);
 const arrayRemove = admin.firestore.FieldValue.arrayRemove;
 
-// /**
-//  * Firestore trigger for (create follower object)
-//  * @returns {Promise}
-//  */
-// exports.onCreated = functions.firestore
-//   .document("users/{uid}/following/{followerId}")
-//   .onCreate((snapshot) => {
-//   const data = snapshot.data();
-//   const followerId = snapshot.id;
-//   const addedBy = data.addedBy; // kenny uid
-
-//   // user who followed taiwo (kenny)
-//   const userWhoFollowedRef = admin
-//     .firestore()
-//     .collection("users")
-//     .doc(addedBy);
-
-//   // user who followed (taiwo's uid)
-//   const followedRef = admin
-//     .firestore()
-//     .collection("users")
-//     .doc(followerId);
-
-//   // users kenny is following
-//   const followingRef = admin
-//     .firestore()
-//     .collection("users")
-//     .doc(addedBy)
-//     .collection("following")
-//     .doc(followerId);
-
-//   // Kenny’s user data get added taiwo’s followers collection
-//   const addToUserFollowing = followingRef
-//     .set(data).then(() => {
-//       console.log("Add user to following collecion");
-//   });
-
-//   // Taiwo’s followerCount get incremented
-//   const incrementFollowerCount = followedRef
-//     .update({ followerCount: increment }).then(() => {
-//       console.log("Incremented user follower count");
-//   });
-
-//   // Kenny’s followingCount get incremented
-//   const incrementFollowingCount = userWhoFollowedRef
-//     .update({ followingCount: increment }).then(() => {
-//       console.log("Incremented user following count");
-//   });
-
-//   return Promise.all([
-//     addToUserFollowing,
-//     incrementFollowerCount,
-//     incrementFollowingCount,
-//   ]);
-// });
-
-// /**
-//  * Firestore trigger for (delete follower object)
-//  * @returns {Promise}
-//  */
-// exports.onDeleted = functions.firestore
-//   .document("users/{uid}/following/{followerId}")
-//   .onDelete((snapshot) => {
-//   const data = snapshot.data();
-//   const followerId = snapshot.id;
-//   const addedBy = data.addedBy; // kenny uid
-
-//   // user who followed taiwo (kenny)
-//   const userWhoFollowedRef = admin
-//     .firestore()
-//     .collection("users")
-//     .doc(addedBy);
-
-//   // user who followed (taiwo's uid)
-//   const followedRef = admin
-//     .firestore()
-//     .collection("users")
-//     .doc(followerId);
-
-//   // users kenny is following
-//   const followingRef = admin
-//     .firestore()
-//     .collection("users")
-//     .doc(addedBy)
-//     .collection("following")
-//     .doc(followerId);
-
-//   // Taiwo’s user data gets removed to kenny’s following collection
-//   const removeFromUserFollowing = followingRef
-//     .delete().then(() => {
-//       console.log("Remove user from following collecion");
-//   });
-
-//   // Taiwo’s followerCount get decremented
-//   const decrementFollowerCount = followedRef
-//     .update({ followerCount: decrement }).then(() => {
-//       console.log("Incremented user follower count");
-//   });
-
-//   // Kenny’s followingCount get incremented
-//   const decrementFollowingCount = userWhoFollowedRef
-//     .update({ followingCount: decrement }).then(() => {
-//       console.log("Incremented user following count");
-//   });
-
-//   return Promise.all([
-//     removeFromUserFollowing,
-//     decrementFollowerCount,
-//     decrementFollowingCount,
-//   ]);
-// });
-
-/**
- * Triggers when a user gets a new follower and sends a notification.
- *
- * Followers add a flag to `/followers/{followedUid}/users/{followerUid}`.
- * Users save their device notification tokens to 
- * `/users/{followedUid}/notificationTokens/{notificationToken}`.
- */
-
 exports.onUnfollow = functions.firestore
-  .document("/followers/{followedUid}/users/{followerUid}")
+  .document("/following/{followerUid}/users/{followedUid}")
   .onDelete(async (snapshot, context) => {
   const followerUid = context.params.followerUid; // kenny
   const followedUid = context.params.followedUid; // taiwo
 
   const followerRef = admin.firestore().collection("users").doc(followerUid);
   const followedRef = admin.firestore().collection("users").doc(followedUid);
-  // If un-follow we exit the function.
   // kenny unfollows taiwo
   console.log('User ', followerUid, 'un-followed user', followedUid);
 
-  const followingRef = admin
+  const followersRef = admin
     .firestore()
-    .collection("following")
-    .doc(followerUid)
+    .collection("followers")
+    .doc(followedUid)
     .collection("users")
-    .doc(followedUid);
+    .doc(followerUid);
 
   // Taiwo’s user data gets removed to kenny’s following collection
-  const removeFromUserFollowing = followingRef
+  const removeFromUserFollowers = followersRef
     .delete()
     .then(() => console.log("Remove user from following collecion"));
 
   // Taiwo’s followerCount get decremented
-  const decrementFollowerCountPromise = followerRef
+  const decrementFollowerCountPromise = followedRef
     .update({ followerCount: decrement })
     .then(() => console.log("Decremented user follower count"));
   // Kenny’s followingCount get decremented
-  const decrementFollowingCountPromise = followedRef
+  const decrementFollowingCountPromise = followerRef
     .update({ followingCount: decrement })
     .then(() => console.log("Decremented user following count"));
 
   return Promise.all([
-    removeFromUserFollowing,
+    removeFromUserFollowers,
     decrementFollowerCountPromise,
     decrementFollowingCountPromise,
   ]);
 }); 
 
 exports.onFollow = functions.firestore
-  .document("/followers/{followedUid}/users/{followerUid}")
+  .document("/following/{followerUid}/users/{followedUid}")
   .onCreate(async (snapshot, context) => {
-  const data = snapshot.data();
   // kenny follows taiwo
   const followerUid = context.params.followerUid; // kenny
   const followedUid = context.params.followedUid; // taiwo
@@ -178,29 +56,31 @@ exports.onFollow = functions.firestore
   // kenny follows taiwo
   console.log('We have a new follower UID:', followerUid, 'for user:', followedUid);
 
-  const followingRef = admin
+  const followerSnapshot = await followerRef.get(); // get kenny's userdata
+
+  const followersRef = admin
     .firestore()
-    .collection("following")
-    .doc(followerUid)
+    .collection("followers")
+    .doc(followedUid)
     .collection("users")
-    .doc(followedUid);
+    .doc(followerUid);
 
   // Kenny’s user data get added taiwo’s followers collection
-  const addToUserFollowing = followingRef
-    .set(data)
-    .then(() => console.log("Add user to following collecion"));
+  const addToUserFollowers = followersRef
+    .set(followerSnapshot.data())
+    .then(() => console.log("Add user to followers collecion"));
 
   // Taiwo’s followerCount get incremented
-  const incrementFollowerCountPromise = followerRef
+  const incrementFollowerCountPromise = followedRef
     .update({ followerCount: increment })
     .then(() => console.log("Incremented user follower count"));
   // Kenny’s followingCount get incremented
-  const incrementFollowingCountPromise = followedRef
+  const incrementFollowingCountPromise = followerRef
     .update({ followingCount: increment })
     .then(() => console.log("Incremented user following count"));
 
   await Promise.all([
-    addToUserFollowing,
+    addToUserFollowers,
     incrementFollowerCountPromise,
     incrementFollowingCountPromise,
   ]);

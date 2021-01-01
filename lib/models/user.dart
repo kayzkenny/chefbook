@@ -43,14 +43,13 @@ class UserData {
   }
 
   /// Convert userData to map such as a firestore document
-  Map<String, dynamic> toNetwork(String addedBy) {
+  Map<String, dynamic> toNetwork() {
     return {
-      'lastName': lastName,
-      'firstName': firstName,
       'uid': uid,
-      'addedBy': addedBy,
       'email': email,
       'avatar': avatar,
+      'lastName': lastName,
+      'firstName': firstName,
       'recipeCount': recipeCount,
       'cookbookCount': cookbookCount,
       'followerCount': followerCount,
