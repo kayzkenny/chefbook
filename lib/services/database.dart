@@ -95,4 +95,6 @@ abstract class Database {
     @required String coverURL,
     @required String cookbookID,
   });
+
+  Stream<List<UserData>> get followingStream;
 }

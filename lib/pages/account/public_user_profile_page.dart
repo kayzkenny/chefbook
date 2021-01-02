@@ -15,8 +15,9 @@ class PublicUserProfilePage extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final String puid = ModalRoute.of(context).settings.arguments;
-    final publicUserDataStream = useProvider(publicUserDataProvider(puid));
+    final followingStream = useProvider(allFollowingProvider);
     final currentUser = useProvider(authProvider).currentUser();
+    final publicUserDataStream = useProvider(publicUserDataProvider(puid));
 
     Future<void> followUser(UserData userData) async =>
         await context.read(databaseProvider).followUser(userData: userData);
@@ -98,17 +99,38 @@ class PublicUserProfilePage extends HookWidget {
                     trailing: Text('${publicUserData.followingCount}'),
                   ),
                   SizedBox(height: 40.0),
-                  if (publicUserData.uid != currentUser.uid)
-                    CustomFlatButton(
-                      onPressed: () => followUser(publicUserData),
-                      label: Text('Follow'),
-                    ),
-                  SizedBox(height: 40.0),
-                  if (publicUserData.uid != currentUser.uid)
-                    CustomFlatButton(
-                      onPressed: () => unfollowUser(publicUserData.uid),
-                      label: Text('UnFollow'),
-                    ),
+                  followingStream.when(
+                    data: (followingList) {
+                      final followedUser = followingList.firstWhere(
+                          (followed) => followed.uid == publicUserData.uid,
+                          orElse: () => null);
+                      if (followedUser == null) {
+                        return CustomFlatButton(
+                          onPressed: () => followUser(publicUserData),
+                          label: Text('Follow'),
+                        );
+                      } else {
+                        return CustomFlatButton(
+                          onPressed: () => unfollowUser(publicUserData.uid),
+                          label: Text('UnFollow'),
+                        );
+                      }
+                    },
+                    loading: () =>
+                        Center(child: const CircularProgressIndicator()),
+                    error: (error, stack) => const Text('Oops'),
+                  ),
+                  // if (publicUserData.uid != currentUser.uid)
+                  //   CustomFlatButton(
+                  //     onPressed: () => followUser(publicUserData),
+                  //     label: Text('Follow'),
+                  //   ),
+                  // SizedBox(height: 40.0),
+                  // if (publicUserData.uid != currentUser.uid)
+                  //   CustomFlatButton(
+                  //     onPressed: () => unfollowUser(publicUserData.uid),
+                  //     label: Text('UnFollow'),
+                  //   ),
                 ],
               ),
               loading: () => Center(child: const CircularProgressIndicator()),

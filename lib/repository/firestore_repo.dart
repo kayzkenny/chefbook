@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:chefbook/models/user_data_social.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:flutter/material.dart';
 import 'package:chefbook/models/user.dart';
@@ -41,6 +42,12 @@ final allFavouriteRecipesProvider =
       .listenToAllFavouriteRecipesRealTime();
 });
 
+// final allFollowingProvider = StreamProvider<List<UserDataSocial>>((ref) {
+//   // ref.onDispose(() =>
+//   //     ref.read(firestoreRepositoryProvider).closeAllFollowingController());
+//   return ref.read(firestoreRepositoryProvider).listenToAllUserFollowing();
+// });
+
 final favouriteRecipeProvider = StreamProvider.autoDispose
     .family<RecipeUserFavourite, String>((ref, recipeId) {
   final recipe = ref.watch(userRecipeProvider(recipeId).stream);
@@ -66,6 +73,35 @@ final favouriteRecipeProvider = StreamProvider.autoDispose
     },
   );
 });
+
+// final userDataSocialProvider =
+//     StreamProvider.family<UserDataSocial, String>((ref, publicUid) {
+//   print('/////////////////////');
+//   final allFollowing = ref.watch(allFollowingProvider.stream);
+//   final publicUserData = ref.watch(publicUserDataProvider(publicUid).stream);
+
+//   ref.onDispose(() {
+//     ref.read(firestoreRepositoryProvider).closeAllFollowingController();
+//     // ref.read(firestoreRepositoryProvider).closePublicUserDataController();
+//   });
+
+//   print(allFollowing?.length);
+
+//   return Rx.combineLatest2(
+//     publicUserData,
+//     allFollowing,
+//     (UserData publicUserData, List<UserDataSocial> allFollowing) {
+//       final userData = allFollowing.firstWhere(
+//         (followed) => followed.userData.uid == publicUserData.uid,
+//         orElse: () => null,
+//       );
+//       return UserDataSocial(
+//         userData: publicUserData,
+//         isFollowed: userData?.isFollowed ?? false,
+//       );
+//     },
+//   );
+// });
 
 final publicRecipesProvider = StreamProvider<List<Recipe>>((ref) {
   // ref.onDispose(() =>
@@ -133,6 +169,8 @@ class FirestoreRepository {
   final _userFollowersController = StreamController<List<UserData>>.broadcast();
   final _allFavouritesController =
       StreamController<List<RecipeUserFavourite>>.broadcast();
+  final _allFollowingController =
+      StreamController<List<UserDataSocial>>.broadcast();
   final _allPagedRecipes = List<List<Recipe>>();
   final _allPagedFavourites = List<List<Recipe>>();
   final _allPagedCookbooks = List<List<Cookbook>>();
@@ -145,9 +183,9 @@ class FirestoreRepository {
   DocumentSnapshot _lastRecipe;
   DocumentSnapshot _lastCookbook;
   DocumentSnapshot _lastFavourite;
-  DocumentSnapshot _lastPublicRecipe;
   DocumentSnapshot _lastFollowing;
   DocumentSnapshot _lastFollowers;
+  DocumentSnapshot _lastPublicRecipe;
   bool _hasMoreRecipes = true;
   bool _hasMoreFollowing = true;
   bool _hasMoreFollowers = true;
@@ -201,6 +239,11 @@ class FirestoreRepository {
     );
   }
 
+  Stream<List<UserDataSocial>> listenToAllUserFollowing() {
+    _requestAllFollowing();
+    return _allFollowingController.stream;
+  }
+
   Stream<List<Recipe>> listenToPublicRecipesRealTime() {
     _requestPublicRecipes();
     return _publicRecipesController.stream;
@@ -226,6 +269,22 @@ class FirestoreRepository {
     );
 
     _userDataController.add(userData);
+  }
+
+  Future<void> _requestAllFollowing() async {
+    final _userFollowing = FirebaseFirestore.instance
+        .collection('following')
+        .doc(uid)
+        .collection('users')
+        .snapshots();
+
+    _userFollowing.listen((snapshot) {
+      List<UserDataSocial> userDataSocials = snapshot.docs
+          .map((snapshot) =>
+              UserDataSocial.fromMap(snapshot.data(), snapshot.id))
+          .toList();
+      _allFollowingController.add(userDataSocials);
+    });
   }
 
   Future<void> _requestAllFavourites() async {
@@ -589,6 +648,8 @@ class FirestoreRepository {
   void closeUserRecipeController() => _userRecipeController.done;
 
   void closeFavouritesController() => _favouritesController.done;
+
+  void closeAllFollowingController() => _allFollowingController.done;
 
   void closePublicRecipesController() => _publicRecipesController.done;
 

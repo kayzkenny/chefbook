@@ -16,4 +16,5 @@ class FirestorePath {
       'followers/$uid/users/$publicUID';
   static String following(String uid, String publicUID) =>
       'following/$uid/users/$publicUID';
+  static String allFollowing(String uid) => 'following/$uid/users';
 }

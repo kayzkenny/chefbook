@@ -14,6 +14,10 @@ final databaseProvider = Provider<Database>(
   (ref) => FirestoreDatabase(uid: ref.watch(authProvider).currentUser().uid),
 );
 
+final allFollowingProvider = StreamProvider<List<UserData>>(
+  (ref) => ref.read(databaseProvider).followingStream,
+);
+
 // final userDataProvider = StreamProvider<UserData>(
 //   (ref) => ref.read(databaseProvider).userDataStream,
 // );
@@ -187,6 +191,14 @@ class FirestoreDatabase implements Database {
       path: FirestorePath.cookbooks(),
       queryBuilder: (query) => query.where('createdBy', isEqualTo: uid),
       builder: (data, documentId) => Cookbook.fromMap(data, documentId),
+    );
+  }
+
+  @override
+  Stream<List<UserData>> get followingStream {
+    return _service.collectionStream(
+      path: FirestorePath.allFollowing(uid),
+      builder: (data, documentId) => UserData.fromMap(data, documentId),
     );
   }
 
