@@ -8,6 +8,9 @@ class FirestorePath {
   static String userRecipe(String recipeId) => 'recipes/$recipeId';
   static String userFavourites(String uid) => 'users/$uid/favourites';
   static String userCookbook(String cookbookID) => 'cookbooks/$cookbookID';
+  static String recipeReviews(String recipeId) => 'recipes/$recipeId/reviews';
+  static String recipeReview(String recipeId, String reviewId) =>
+      'recipes/$recipeId/reviews/$reviewId';
   static String recipeUserRating(String recipeId, String uid) =>
       'recipes/$recipeId/ratings/$uid';
   static String userFavouriteRecipe(String uid, String recipeId) =>
