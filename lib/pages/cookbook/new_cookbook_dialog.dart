@@ -16,10 +16,14 @@ class NewCookbookDialog extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
+    final loadingCreateCookbok = useState(false);
     final cookbookNameController = useTextEditingController();
 
-    Future<void> createCookbook(cookbook) async =>
-        await context.read(databaseProvider).createCookbook(cookbook: cookbook);
+    Future<void> createCookbook(cookbook) async {
+      loadingCreateCookbok.value = true;
+      await context.read(databaseProvider).createCookbook(cookbook: cookbook);
+      loadingCreateCookbok.value = false;
+    }
 
     return AlertDialog(
       title: Text(
@@ -47,18 +51,20 @@ class NewCookbookDialog extends HookWidget {
         ),
         FlatButton(
           child: Text('SAVE'),
-          onPressed: () async {
-            if (_formKey.currentState.validate()) {
-              Cookbook cookbook = Cookbook(
-                name: cookbookNameController.text,
-                createdAt: DateTime.now(),
-                createdBy: Auth().currentUser().uid,
-                lastUpdated: DateTime.now(),
-              );
-              await createCookbook(cookbook);
-              Navigator.of(context).pop(true);
-            }
-          },
+          onPressed: loadingCreateCookbok.value
+              ? () {}
+              : () async {
+                  if (_formKey.currentState.validate()) {
+                    Cookbook cookbook = Cookbook(
+                      name: cookbookNameController.text,
+                      createdAt: DateTime.now(),
+                      createdBy: Auth().currentUser().uid,
+                      lastUpdated: DateTime.now(),
+                    );
+                    await createCookbook(cookbook);
+                    Navigator.of(context).pop(true);
+                  }
+                },
         ),
       ],
     );

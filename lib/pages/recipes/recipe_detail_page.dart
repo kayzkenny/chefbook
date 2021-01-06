@@ -41,6 +41,8 @@ class RecipeDetail extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
+    final loadingDeleteRecipe = useState(false);
+
     void _showRecipeImagePicker() {
       showModalBottomSheet(
         context: context,
@@ -82,7 +84,11 @@ class RecipeDetail extends HookWidget {
       );
 
       if (result == true) {
-        context.read(databaseProvider).deleteRecipe(recipeId: userRecipe.id);
+        loadingDeleteRecipe.value = true;
+        await context
+            .read(databaseProvider)
+            .deleteRecipe(recipeId: userRecipe.id);
+        loadingDeleteRecipe.value = false;
         Navigator.of(context).pop(true);
       } else {
         print("Canceled Pressed");
@@ -110,7 +116,7 @@ class RecipeDetail extends HookWidget {
                       Icons.delete,
                       color: Colors.brown,
                     ),
-                    onPressed: deleteRecipe,
+                    onPressed: loadingDeleteRecipe.value ? () {} : deleteRecipe,
                   )
                 ],
                 bottom: TabBar(

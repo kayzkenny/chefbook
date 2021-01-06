@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:chefbook/models/user.dart';
-import 'package:chefbook/services/auth.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:chefbook/shared/custom_flat_button.dart';
@@ -14,16 +13,23 @@ class PublicUserProfilePage extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
+    final loadingFollowUser = useState(false);
+    final loadingUnfollowUser = useState(false);
     final String puid = ModalRoute.of(context).settings.arguments;
     final followingStream = useProvider(allFollowingProvider);
-    final currentUser = useProvider(authProvider).currentUser();
     final publicUserDataStream = useProvider(publicUserDataProvider(puid));
 
-    Future<void> followUser(UserData userData) async =>
-        await context.read(databaseProvider).followUser(userData: userData);
+    Future<void> followUser(UserData userData) async {
+      loadingFollowUser.value = true;
+      await context.read(databaseProvider).followUser(userData: userData);
+      loadingFollowUser.value = false;
+    }
 
-    Future<void> unfollowUser(String publicUID) async =>
-        await context.read(databaseProvider).unfollowUser(publicUID: publicUID);
+    Future<void> unfollowUser(String publicUID) async {
+      loadingUnfollowUser.value = true;
+      await context.read(databaseProvider).unfollowUser(publicUID: publicUID);
+      loadingUnfollowUser.value = false;
+    }
 
     return Scaffold(
       body: SafeArea(
@@ -106,12 +112,16 @@ class PublicUserProfilePage extends HookWidget {
                           orElse: () => null);
                       if (followedUser == null) {
                         return CustomFlatButton(
-                          onPressed: () => followUser(publicUserData),
+                          onPressed: loadingFollowUser.value
+                              ? () {}
+                              : () => followUser(publicUserData),
                           label: Text('Follow'),
                         );
                       } else {
                         return CustomFlatButton(
-                          onPressed: () => unfollowUser(publicUserData.uid),
+                          onPressed: loadingUnfollowUser.value
+                              ? () {}
+                              : () => unfollowUser(publicUserData.uid),
                           label: Text('UnFollow'),
                         );
                       }
@@ -120,17 +130,6 @@ class PublicUserProfilePage extends HookWidget {
                         Center(child: const CircularProgressIndicator()),
                     error: (error, stack) => const Text('Oops'),
                   ),
-                  // if (publicUserData.uid != currentUser.uid)
-                  //   CustomFlatButton(
-                  //     onPressed: () => followUser(publicUserData),
-                  //     label: Text('Follow'),
-                  //   ),
-                  // SizedBox(height: 40.0),
-                  // if (publicUserData.uid != currentUser.uid)
-                  //   CustomFlatButton(
-                  //     onPressed: () => unfollowUser(publicUserData.uid),
-                  //     label: Text('UnFollow'),
-                  //   ),
                 ],
               ),
               loading: () => Center(child: const CircularProgressIndicator()),

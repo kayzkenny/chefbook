@@ -9,7 +9,7 @@ import 'package:chefbook/services/auth.dart';
 import 'package:chefbook/models/cookbook.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:chefbook/models/recipeUserFavourite.dart';
+import 'package:chefbook/models/recipe_user_favourite.dart';
 
 final firestoreRepositoryProvider = Provider<FirestoreRepository>(
   (ref) => FirestoreRepository(uid: ref.watch(authProvider).currentUser().uid),

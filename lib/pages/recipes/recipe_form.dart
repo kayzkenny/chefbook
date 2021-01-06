@@ -37,11 +37,12 @@ class RecipeForm extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final auth = useProvider(authProvider);
+    final loadingCreateRecipe = useState(false);
+    final loadingUpdateRecipe = useState(false);
     final tags = useProvider(tagsNotifierProvider.state);
     final steps = useProvider(stepsNotifierProvider.state);
     final recipeIntro = useProvider(recipeNotifierProvider.state);
     final ingredients = useProvider(ingredientsNotifierProvider.state);
-
     final String cookbookId = ModalRoute.of(context).settings.arguments;
 
     Future<void> createRecipe() async {
@@ -59,7 +60,9 @@ class RecipeForm extends HookWidget {
         description: recipeIntro.description,
         caloriesPerServing: recipeIntro.caloriesPerServing,
       );
+      loadingCreateRecipe.value = true;
       await context.read(databaseProvider).createRecipe(recipe: recipe);
+      loadingCreateRecipe.value = false;
     }
 
     Future<void> updateRecipe() async {
@@ -76,7 +79,9 @@ class RecipeForm extends HookWidget {
         description: recipeIntro.description,
         caloriesPerServing: recipeIntro.caloriesPerServing,
       );
+      loadingUpdateRecipe.value = true;
       await context.read(databaseProvider).updateRecipe(recipe: recipe);
+      loadingUpdateRecipe.value = false;
     }
 
     return DefaultTabController(
@@ -90,20 +95,24 @@ class RecipeForm extends HookWidget {
           actions: [
             recipeId != null
                 ? FlatButton(
-                    onPressed: () async {
-                      await updateRecipe();
-                      Navigator.of(context).pop(true);
-                    },
+                    onPressed: loadingUpdateRecipe.value
+                        ? () {}
+                        : () async {
+                            await updateRecipe();
+                            Navigator.of(context).pop(true);
+                          },
                     child: Text(
                       'UPDATE',
                       style: Theme.of(context).textTheme.button,
                     ),
                   )
                 : FlatButton(
-                    onPressed: () async {
-                      await createRecipe();
-                      Navigator.of(context).pop(true);
-                    },
+                    onPressed: loadingCreateRecipe.value
+                        ? () {}
+                        : () async {
+                            await createRecipe();
+                            Navigator.of(context).pop(true);
+                          },
                     child: Text(
                       'SAVE',
                       style: Theme.of(context).textTheme.button,

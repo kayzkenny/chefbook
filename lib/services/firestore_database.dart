@@ -1,3 +1,4 @@
+import 'package:chefbook/models/recipe_review.dart';
 import 'package:meta/meta.dart';
 // import 'package:rxdart/rxdart.dart';
 import 'package:chefbook/models/user.dart';
@@ -7,7 +8,7 @@ import 'package:chefbook/models/cookbook.dart';
 import 'package:chefbook/services/database.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:chefbook/services/firestore_path.dart';
-import 'package:chefbook/models/recipeUserFavourite.dart';
+import 'package:chefbook/models/recipe_user_favourite.dart';
 import 'package:chefbook/services/firestore_service.dart';
 
 final databaseProvider = Provider<Database>(
@@ -111,6 +112,25 @@ class FirestoreDatabase implements Database {
       path: FirestorePath.recipes(),
       data: recipe.create(),
     );
+  }
+
+  @override
+  Future<void> setReview({
+    @required String recipeId,
+    @required RecipeReview recipeReview,
+  }) async {
+    _service.setData(
+      path: FirestorePath.recipeReview(recipeId, uid),
+      data: recipeReview.toMap(),
+    );
+  }
+
+  @override
+  Future<void> deleteReview({
+    @required String recipeId,
+    @required String reviewId,
+  }) async {
+    _service.deleteData(path: FirestorePath.recipeReview(recipeId, reviewId));
   }
 
   @override

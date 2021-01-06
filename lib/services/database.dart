@@ -1,8 +1,9 @@
+import 'package:chefbook/models/recipe_review.dart';
 import 'package:meta/meta.dart';
 import 'package:chefbook/models/user.dart';
 import 'package:chefbook/models/recipe.dart';
 import 'package:chefbook/models/cookbook.dart';
-import 'package:chefbook/models/recipeUserFavourite.dart';
+import 'package:chefbook/models/recipe_user_favourite.dart';
 
 abstract class Database {
   // User operations
@@ -24,6 +25,16 @@ abstract class Database {
   Future<void> followUser({@required UserData userData});
 
   Future<void> unfollowUser({@required String publicUID});
+
+  Future<void> setReview({
+    @required String recipeId,
+    @required RecipeReview recipeReview,
+  });
+
+  Future<void> deleteReview({
+    @required String recipeId,
+    @required String reviewId,
+  });
 
   // Recipe operations
   /// Create a [recipe]
