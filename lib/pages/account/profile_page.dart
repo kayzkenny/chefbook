@@ -19,8 +19,13 @@ class ProfilePage extends HookWidget {
 
     return userDataStream.when(
       data: (userData) => ProfileForm(userData: userData),
-      loading: () => Center(child: const CircularProgressIndicator()),
-      error: (error, stack) => const Text('Oops'),
+      loading: () => Center(
+        child: const CircularProgressIndicator(),
+      ),
+      error: (error, stack) => Scaffold(
+          body: Center(
+        child: const Text('Something went wrong'),
+      )),
     );
   }
 }

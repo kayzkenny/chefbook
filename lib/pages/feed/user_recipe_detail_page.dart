@@ -21,8 +21,14 @@ class UserRecipeDetailPage extends HookWidget {
         userRecipe: userRecipe.recipe,
         isFavourite: userRecipe.isFavourite,
       ),
-      loading: () => Center(child: const CircularProgressIndicator()),
-      error: (error, stack) => const Text('Oops'),
+      loading: () => Center(
+        child: const CircularProgressIndicator(),
+      ),
+      error: (error, stack) => Scaffold(
+        body: Center(
+          child: const Text('Something went wrong'),
+        ),
+      ),
     );
   }
 }
@@ -146,9 +152,12 @@ class UserRecipeDetail extends HookWidget {
                             ],
                           ),
                         ),
-                        loading: () =>
-                            Center(child: const CircularProgressIndicator()),
-                        error: (error, stack) => const Text('Oops'),
+                        loading: () => Center(
+                          child: const CircularProgressIndicator(),
+                        ),
+                        error: (error, stack) => Center(
+                          child: const Text('Something went wrong'),
+                        ),
                       ),
                       SizedBox(height: 16.0),
                       Container(

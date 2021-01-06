@@ -119,14 +119,19 @@ class NetworkPage extends HookWidget {
                     loading: () => Center(
                       child: const CircularProgressIndicator(),
                     ),
-                    error: (error, stack) =>
-                        Center(child: Text('${error.toString()}')),
+                    error: (error, stack) => Center(
+                      child: Text('${error.toString()}'),
+                    ),
                   ),
           ],
         ),
       ),
-      loading: () => Center(child: const CircularProgressIndicator()),
-      error: (error, stack) => const Text('Oops'),
+      loading: () => Center(
+        child: const CircularProgressIndicator(),
+      ),
+      error: (error, stack) => Center(
+        child: const Text('Something went wrong'),
+      ),
     );
   }
 }

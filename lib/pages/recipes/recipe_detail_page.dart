@@ -29,7 +29,11 @@ class RecipeDetailPage extends ConsumerWidget {
     return userRecipeStream.when(
       data: (userRecipe) => RecipeDetail(userRecipe: userRecipe),
       loading: () => Center(child: const CircularProgressIndicator()),
-      error: (error, stack) => const Text('Oops'),
+      error: (error, stack) => Scaffold(
+        body: Center(
+          child: const Text('Something went wrong'),
+        ),
+      ),
     );
   }
 }

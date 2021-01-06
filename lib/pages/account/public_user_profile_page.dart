@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:chefbook/services/auth.dart';
 import 'package:flutter/material.dart';
 import 'package:chefbook/models/user.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -17,18 +20,61 @@ class PublicUserProfilePage extends HookWidget {
     final loadingUnfollowUser = useState(false);
     final String puid = ModalRoute.of(context).settings.arguments;
     final followingStream = useProvider(allFollowingProvider);
+    final currentUser = useProvider(authProvider).currentUser();
     final publicUserDataStream = useProvider(publicUserDataProvider(puid));
+
+    void _showErrorDialog({String title, String content}) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          // return object of type Dialog
+          return AlertDialog(
+            title: new Text(title),
+            content: new Text(content),
+            actions: <Widget>[
+              // usually buttons at the bottom of the dialog
+              new FlatButton(
+                child: new Text("Close"),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+    }
 
     Future<void> followUser(UserData userData) async {
       loadingFollowUser.value = true;
-      await context.read(databaseProvider).followUser(userData: userData);
-      loadingFollowUser.value = false;
+      try {
+        await context.read(databaseProvider).followUser(userData: userData);
+      } on SocketException catch (e) {
+        _showErrorDialog(title: "Request Timed Out", content: e.message);
+      } catch (e) {
+        _showErrorDialog(
+          title: "Something went wrong",
+          content: "Please try again later",
+        );
+      } finally {
+        loadingFollowUser.value = false;
+      }
     }
 
     Future<void> unfollowUser(String publicUID) async {
       loadingUnfollowUser.value = true;
-      await context.read(databaseProvider).unfollowUser(publicUID: publicUID);
-      loadingUnfollowUser.value = false;
+      try {
+        await context.read(databaseProvider).unfollowUser(publicUID: publicUID);
+      } on SocketException catch (e) {
+        _showErrorDialog(title: "Request Timed Out", content: e.message);
+      } catch (e) {
+        _showErrorDialog(
+          title: "Something went wrong",
+          content: "Please try again later",
+        );
+      } finally {
+        loadingUnfollowUser.value = false;
+      }
     }
 
     return Scaffold(
@@ -111,29 +157,42 @@ class PublicUserProfilePage extends HookWidget {
                           (followed) => followed.uid == publicUserData.uid,
                           orElse: () => null);
                       if (followedUser == null) {
-                        return CustomFlatButton(
-                          onPressed: loadingFollowUser.value
-                              ? () {}
-                              : () => followUser(publicUserData),
-                          label: Text('Follow'),
-                        );
+                        return publicUserData.uid == currentUser.uid
+                            ? SizedBox(height: 0.0,)
+                            : CustomFlatButton(
+                                onPressed: loadingFollowUser.value
+                                    ? () {}
+                                    : () => followUser(publicUserData),
+                                label: loadingFollowUser.value
+                                    ? const CircularProgressIndicator()
+                                    : const Text('Follow'),
+                              );
                       } else {
                         return CustomFlatButton(
                           onPressed: loadingUnfollowUser.value
                               ? () {}
                               : () => unfollowUser(publicUserData.uid),
-                          label: Text('UnFollow'),
+                          label: loadingUnfollowUser.value
+                              ? const CircularProgressIndicator()
+                              : const Text('UnFollow'),
                         );
                       }
                     },
-                    loading: () =>
-                        Center(child: const CircularProgressIndicator()),
-                    error: (error, stack) => const Text('Oops'),
+                    loading: () => Center(
+                      child: const CircularProgressIndicator(),
+                    ),
+                    error: (error, stack) => Center(
+                      child: const Text('Something went wrong'),
+                    ),
                   ),
                 ],
               ),
-              loading: () => Center(child: const CircularProgressIndicator()),
-              error: (error, stack) => const Text('Oops'),
+              loading: () => Center(
+                child: const CircularProgressIndicator(),
+              ),
+              error: (error, stack) => Center(
+                child: const Text('Something went wrong'),
+              ),
             ),
           ),
         ),

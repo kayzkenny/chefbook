@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:chefbook/shared/alert_dialog.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:chefbook/services/auth.dart';
@@ -70,17 +69,19 @@ class SignInPage extends HookWidget {
               passwordController.text,
             );
       } on PlatformException catch (e) {
-        loading.value = false;
         _showSignInError(e);
       } on SocketException catch (e) {
-        loading.value = false;
-        _showErrorDialog(title: "Request Timed Out", content: e.message);
+        _showErrorDialog(
+          title: "Request Timed Out",
+          content: e.message,
+        );
       } catch (e) {
-        loading.value = false;
         _showErrorDialog(
           title: "Something went wrong",
           content: "Please try again later",
         );
+      } finally {
+        loading.value = false;
       }
     }
 
