@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:chefbook/services/auth.dart';
@@ -36,6 +38,29 @@ class RegisterPage extends HookWidget {
     //   }
     // }
 
+    void _showErrorDialog({String title, String content}) {
+      // flutter defined function
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          // return object of type Dialog
+          return AlertDialog(
+            title: new Text(title),
+            content: new Text(content),
+            actions: <Widget>[
+              // usually buttons at the bottom of the dialog
+              new FlatButton(
+                child: new Text("Close"),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+    }
+
     Future<void> createUserWithEmailAndPassword() async {
       loading.value = true;
       try {
@@ -46,6 +71,15 @@ class RegisterPage extends HookWidget {
       } on PlatformException catch (e) {
         loading.value = false;
         _showSignInError(e);
+      } on SocketException catch (e) {
+        loading.value = false;
+        _showErrorDialog(title: "Request Timed Out", content: e.message);
+      } catch (e) {
+        loading.value = false;
+        _showErrorDialog(
+          title: "Something went wrong",
+          content: "Please try again later",
+        );
       }
     }
 
