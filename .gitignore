@@ -43,3 +43,5 @@ functions/api_keys.js
 android/app/google-services.json
 ios/GoogleService-Info.plist
 lib/shared/api_keys.dart
+ios/GoogleService-Info.plist
+ios/GoogleService-Info.plist
