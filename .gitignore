@@ -40,3 +40,5 @@ app.*.symbols
 # Obfuscation related
 app.*.map.json
 functions/api_keys.js
+lib/shared/api_keys.dart
+android/app/google-services.json
